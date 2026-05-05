@@ -729,6 +729,67 @@ close_project
 
 ---
 
+## 9.4 FMC HPC 引脚速查（FMCADDA-9250-9144 子卡）
+
+> 来源：正点原子 K7_BASE_1V3_2025_0111_USER.pdf 原理图 J34A/J34B/J34E
+> 子卡型号：FMCADDA-9250-9144（AD9250 250Msps ADC + AD9144 2.8Gsps DAC）
+
+### 高速差分对（GTX）
+
+| 信号 | FPGA 引脚 | 方向 | 说明 |
+|:---|:---|:---|:---|
+| DP0_C2M_P/N | H2 / H1 | TX | DAC lane 0 |
+| DP1_C2M_P/N | F2 / F1 | TX | DAC lane 1 |
+| DP2_C2M_P/N | J4 / J3 | TX | DAC lane 2 |
+| DP3_C2M_P/N | K2 / K1 | TX | DAC lane 3 |
+| DP0_M2C_P/N | G4 / G3 | RX | ADC lane 0 |
+| DP1_M2C_P/N | F6 / F5 | RX | ADC lane 1 |
+| GBTCLK0_M2C_P/N | G8 / G7 | RX | GTX RefClk 125M |
+| GBTCLK1_M2C_P/N | J8 / J7 | RX | 备用 RefClk |
+
+### 低速信号（LA + CLK）
+
+| 信号 | FPGA 引脚 | 说明 |
+|:---|:---|:---|
+| LA00_CC_P/N | D17 / D18 | JESD glblclk / 通用 |
+| LA01_CC_P/N | F21 / E21 | ADC SPI SCLK / CSN |
+| LA02_P/N | K18 / J18 | ADC SPI SDIO / 通用 |
+| LA04_P/N | D16 / C16 | DAC TXEN0 / TXEN1 |
+| LA05_P/N | E19 / D19 | DAC SYNC0 |
+| LA06_P/N | B18 / A18 | DAC SPI SDIO / SDO |
+| LA07_P/N | G17 / F17 | 通用 |
+| LA08_P/N | B22 / A22 | 通用 |
+| LA09_P/N | D21 / C21 | DAC SYNC1 |
+| LA10_P/N | C19 / B19 | DAC SPI SCLK / CSN |
+| LA11_P/N | C20 / B20 | 通用 |
+| LA12_P/N | L17 / L18 | 通用 |
+| LA13_P/N | D22 / C22 | ADC SYNC |
+| LA14_P/N | C18 / F18 | DAC RSTN / IRQN |
+| LA15_P/N | A20 / A21 | 通用 |
+| LA16_P/N | A16 / A17 | 通用 |
+| LA17_CC_P/N | H14 / G14 | 通用 |
+| LA18_CC_P/N | D23 / D22 | DAC PROT0 / PROT1 |
+| LA19_P/N | A14 / E15 | 通用 |
+| LA20_P/N | D14 / C14 | FPGA SYSREF |
+| LA21_P/N | A11 / A12 | 通用 |
+| LA22_P/N | C15 / B15 | 通用 |
+| LA24_P/N | H11 / H12 | TRIG / SYSREF |
+| LA25_P/N | D11 / C11 | 通用 |
+| LA27_P/N | B14 / A15 | 通用 |
+| LA28_P/N | J11 / J12 | LMK SPI SDIO / CSB |
+| LA29_P/N | F15 / E16 | LMK SPI SCLK / RST |
+| LA30_P/N | B13 / A13 | 通用 |
+| LA31_P/N | L11 / K11 | 通用 |
+| LA32_P/N | F11 / E11 | 通用 |
+| LA33_P/N | J16 / H16 | 通用 |
+| CLK0_M2C_P/N | F20 / E20 | ADC RSTN / FDB |
+| CLK1_M2C_P/N | G13 / F13 | 通用时钟 |
+| IIC_SCL | AD29 | EEPROM SCL |
+| IIC_SDA | AE29 | EEPROM SDA |
+| PRSNT_M2C_L | AF30 | FMC 在位检测 |
+
+---
+
 ## 10. Git 版本控制
 
 ### 10.1 仓库信息
@@ -782,6 +843,7 @@ git push
 | 2026-05-01 | 初始版本：License 验证、1_led、6_reg 示例 | Sisyphus |
 | 2026-05-02 | 添加 DDS Compiler IP 模块简要记录 | Sisyphus |
 | 2026-05-05 | **全面重构**：添加 10 个章节结构、完整 DDS 文档、技术规范、经验教训、FAQ、操作指南 | Sisyphus |
+| 2026-05-05 | 添加 FMC ADDA (AD9144+AD9250) 引脚映射、子卡规格、JESD204B 配置参数 | Sisyphus |
 
 ### 下次更新建议
 
