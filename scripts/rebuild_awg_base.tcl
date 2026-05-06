@@ -8,6 +8,7 @@ set proj_name "awg_k325t"
 open_project [file join $proj_dir "$proj_name.xpr"]
 
 # Ensure top module is set
+set_property verilog_define {} [get_filesets sources_1]
 set_property top awg_dds_led_top [get_filesets sources_1]
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1

@@ -45,6 +45,7 @@ module awg_dds_led_top (
     wire        freq_load;
     wire [15:0] awg_sample;
     wire        sample_valid;
+    wire [1:0]  wave_led;
 
     IBUFDS u_clk_ibufds (
         .I  (sys_clk_p),
@@ -107,7 +108,40 @@ module awg_dds_led_top (
         .da_data  (da_data)
     );
 
-    assign led[0] = awg_sample[15];
-    assign led[1] = awg_sample[14] ^ awg_sample[15];
+    assign wave_led[0] = awg_sample[15];
+    assign wave_led[1] = awg_sample[14] ^ awg_sample[15];
+
+    awg_led_status #(
+        .STATUS_TICKS (32'd100_000_000)
+    ) u_led_status (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .ui_mode    (ui_mode),
+        .wave_mode  (wave_mode),
+        .phase_inc  (phase_inc),
+        .amplitude  (amplitude),
+        .offset     (offset),
+        .wave_led   (wave_led),
+        .led        (led)
+    );
+
+`ifdef AWG_DEBUG_ILA
+    ila_awg_debug u_ila_awg_debug (
+        .clk    (clk),
+        .probe0 (key0),
+        .probe1 (key1),
+        .probe2 (rst_n),
+        .probe3 (ui_mode),
+        .probe4 (wave_mode),
+        .probe5 (freq_load),
+        .probe6 (phase_inc),
+        .probe7 (amplitude),
+        .probe8 (offset),
+        .probe9 (awg_sample),
+        .probe10(sample_valid),
+        .probe11(da_data),
+        .probe12(led)
+    );
+`endif
 
 endmodule

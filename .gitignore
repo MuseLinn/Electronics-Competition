@@ -23,6 +23,7 @@ vivado/*.wcfg
 
 # Simulation outputs
 sim/work/xsim.dir/
+sim/work/*/
 sim/work/*.vcd
 
 # Build logs
@@ -53,3 +54,7 @@ vivado/**/ip/**/*.xml
 vivado/**/ip/**/*.veo
 vivado/**/ip/**/*.vho
 vivado/**/ip/**/*_ooc.xdc
+vivado/**/ip/**/*_sim_netlist.v
+vivado/**/ip/**/*_sim_netlist.vhdl
+vivado/**/ip/**/*_stub.v
+vivado/**/ip/**/*_stub.vhdl

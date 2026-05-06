@@ -38,6 +38,7 @@ add_files -fileset sources_1 [list \
     "D:/awg_fpga/rtl/dsp/amp_offset_scale.v" \
     "D:/awg_fpga/rtl/dsp/awg_core.v" \
     "D:/awg_fpga/rtl/control/awg_key_ui_ctrl.v" \
+    "D:/awg_fpga/rtl/control/awg_led_status.v" \
     "D:/awg_fpga/rtl/dac/dac_edu_parallel_if.v" \
 ]
 puts "  RTL added"

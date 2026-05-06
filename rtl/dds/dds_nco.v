@@ -37,7 +37,7 @@ module dds_nco #(
     // 每时钟周期：phase_acc = phase_acc + phase_inc
     // 溢出自动绕回（模 2^PHASE_W），这是 DDS 频率合成的核心
     //----------------------------------------------------------------------
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n)
             phase_acc <= {PHASE_W{1'b0}};
         else
