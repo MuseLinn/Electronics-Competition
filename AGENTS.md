@@ -168,6 +168,7 @@ Phase 1: 基础验证
 │   ├── [✅] `wave_mode` 已扩展到 sine/square/triangle/saw/test/BRAM/sweep
 │   ├── [✅] `tb_awg_core` 覆盖 BRAM 与 sweep 模式并通过
 │   └── [✅] `rebuild_awg_base.tcl` 可生成最新 `awg_dds_led_top.bit`
+├── [✅] 幅度/偏置/缩放模块
 ├── [✅] 教学 DAC 接口
 ├── [✅] 扫频引擎
 ├── [✅] BRAM 波形存储
@@ -216,16 +217,8 @@ D:\awg_fpga
 ├── rtl/
 │   ├── dds/
 │   │   └── dds_compiler_wrapper.v      # DDS IP 封装（中文注释）
-│   ├── dds/
-│   │   ├── dds_nco.v                   # 手写 NCO
-│   │   ├── sine_lut.v                  # 正弦 ROM
-│   │   └── wave_shape_gen.v            # 方波/三角波/锯齿波
 │   ├── top/
 │   │   └── awg_dds_led_top.v           # 板级顶层（含 DAC 接口）
-│   ├── dsp/
-│   │   ├── awg_core.v                  # DDS + 波形选择 + 幅度/偏置前端
-│   │   ├── amp_offset_scale.v          # 幅度缩放 + 偏置 + 饱和
-│   │   └── sample_mux.v                # 波形选择器
 │   └── dac/
 │       └── dac_edu_parallel_if.v       # 教学 DAC 接口
 ├── sim/
@@ -1358,7 +1351,7 @@ If this is missing, the AD9144 path may link but output a flat waveform.
 | 2026-05-06 | **完成 FPGA-only 排除法验证**：创建 `fpga_only_diag` 最小设计并实测通过，证明 K325T 本体、JTAG、板载 100MHz、debug hub/ILA 正常；AD9144 当前问题收敛到 FMCADDA/LMK/glblclk 路径 | Codex |
 | 2026-05-06 | **FMC 子卡复测与 JESD TX 验证**：发现 vendor reset 延时约 4s，硬件脚本需等待 12-15s；等待后 TX/RX ILA clock 可用，AD9144 TX 侧 QPLL/reset/tready/SYNC/SYSREF/data 正常，AD9250 RX `tvalid=0` 待后续单独处理 | Codex |
 | 2026-05-06 | **补充示波器首测预期**：当前 vendor ROM 路径预期 DAC 输出约 50MHz，先测 OUT1，若为平线再换 OUT2-OUT4；判断前需等待 12-15s 完成复位/配置 | Codex |
-| 2026-05-06 | **开始 AWG core 前端**：新增 `awg_core.v`，把 DDS / 波形选择 / 幅度 / 偏置串成统一前端；`tb_awg_core` 已对拍通过，并已接入 `awg_dds_led_top.v` | Codex |
+| 2026-05-06 | **开始 AWG core 前端**：新增 `rtl/dsp/awg_core.v`，把 DDS / 波形选择 / 幅度 / 偏置串成统一前端；`tb_awg_core` 已对拍通过，并已接入 `awg_dds_led_top.v` | Codex |
 | 2026-05-06 | **落地 Phase 1 AWG 模式扩展**：新增 `sweep_engine.v` 与 `bram_wave_player.v`，`wave_mode` 扩展到 0-6；`tb_awg_core` 新增 BRAM/sweep 回归并通过，`rebuild_awg_base.tcl` 已生成最新 `awg_dds_led_top.bit` | Codex |
 
 ### 下次更新建议
@@ -1368,13 +1361,28 @@ If this is missing, the AD9144 path may link but output a flat waveform.
 - [ ] 清理 routed timing 中 reset/debug/CDC 路径，更新 WNS/TNS
 - [ ] 添加 AD9144 顶层适配模块文档
 - [ ] 添加扫频引擎模块文档
+- [ ] 把 AWG core 前端的寄存器/按键控制补齐
 - [ ] 添加 DDR3 MIG 配置记录
 - [ ] 添加 PCIe XDMA 接口文档
 - [ ] 更新板级验证结果（LED 闪烁实测 / JESD 建链实测 / 示波器波形）
 
----
+## 13. Current AWG status addendum (2026-05-06)
 
-## 13. AWG debug observability addendum (2026-05-06)
+- Active board demo chain:
+  `sys_clk_p/n -> IBUFDS/BUFG -> awg_key_ui_ctrl -> awg_core -> dac_edu_parallel_if -> da_clk/da_data[7:0]`
+- Current validated files:
+  - `D:\awg_fpga\rtl\control\awg_key_ui_ctrl.v`
+  - `D:\awg_fpga\rtl\dsp\awg_core.v`
+  - `D:\awg_fpga\rtl\top\awg_dds_led_top.v`
+  - `D:\awg_fpga\constraints\awg_dds_led_top.xdc`
+- Teaching DAC pins were merged into the main top XDC, so `da_clk` and `da_data[7:0]` are no longer unconstrained.
+- Fresh verification:
+  - `run_awg_key_ui_ctrl_sim.ps1` -> PASS
+  - `run_awg_core_sim.ps1` -> PASS, covering sine/square/triangle/saw/amp/offset/saturation/BRAM/sweep
+  - `rebuild_awg_base.tcl` -> PASS, bitstream generated at `D:\awg_fpga\vivado\awg_k325t.runs\impl_1\awg_dds_led_top.bit`
+- Next board step: reconnect the board, program the bitstream in Hardware Manager, and observe KEY0/KEY1 control plus DAC output.
+
+## 14. AWG debug observability addendum (2026-05-06)
 
 - Added visible front-panel feedback in `D:\awg_fpga\rtl\control\awg_led_status.v`.
   - Normal mode returns to waveform LEDs: `led[0]=awg_sample[15]`, `led[1]=awg_sample[14]^awg_sample[15]`.
@@ -1404,6 +1412,7 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Normal bit: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_base.tcl`
   - Debug bit/ltx: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_debug.tcl`
   - Hardware program/capture: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\program_and_capture_awg_debug.tcl`
+  - Hardware capture without reprogramming: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\capture_awg_debug_no_program.tcl`
 - Output files:
   - Normal bit: `D:\awg_fpga\vivado\awg_k325t.runs\impl_1\awg_dds_led_top.bit`
   - Stable debug bit: `D:\awg_fpga\artifacts\debug\awg_dds_led_top_debug.bit`
@@ -1421,13 +1430,184 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Initial `open_hw_target` failure was caused by board power being off. After power was restored, Vivado detected `xc7k325t_0`.
   - Debug bit programming succeeded with startup status `HIGH`.
   - `program_and_capture_awg_debug.tcl` must set `BSCAN_SWITCH_USER_MASK=1`; otherwise Hardware Manager may not find `dbg_hub` on user scan chain 1.
+  - `program_and_capture_awg_debug.tcl` reprograms the FPGA before capture, so it resets the button/UI state to defaults. Do not use it to judge whether button presses were retained. Use `capture_awg_debug_no_program.tcl` after programming the debug bit once and after operating the buttons.
   - Successful ILA capture: `D:\awg_fpga\measurements\ila\capture_20260506_181837\hw_ila_1.csv`.
+  - No-program capture on 2026-05-06 confirmed the current debug design was still loaded (`1 ILA core`) and captured the default state without reset: `ui_mode=0`, `wave_mode=0`, `phase_inc=0000002af31e`, `amplitude=4000`, `offset=0000`.
   - Captured CSV includes `key0/key1/rst_n/ui_mode/wave_mode/freq_load/phase_inc/amplitude/offset/awg_sample/sample_valid/da_data/led`.
   - Default output is 1Hz, so a 2048-sample ILA window at 100MHz shows little visible waveform movement unless controls are changed or a faster debug frequency is used.
 
----
+## 15. AD9144 AWG Button Variant Addendum (2026-05-06)
 
-> **End of Document**
->
-> 本文档为 Agent 协作知识库，由 Sisyphus/Codex 维护。
-> 如有疑问或需要更新，请在会话中提及。
+- Purpose: make the already-proven AD9144/JESD analog path respond to the two K325T board keys on the oscilloscope.
+- This variant does not replace the known-good vendor baseline `top_direct.bit`.
+- Active bitstream now generated and programmed:
+  - `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
+  - Build log: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button_build_20260506_retry.log`
+  - Program log: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button_program_20260506.log`
+- Source and constraints:
+  - `D:\FPGA\ad9144_bringup_k325t\variants\awg_button\top.v`
+  - `D:\FPGA\ad9144_bringup_k325t\constraints\awg_button_k325t.xdc`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\create_awg_button_project.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\build_awg_button_direct.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\program_awg_button.tcl`
+- What changed versus `top_direct.bit`:
+  - JESD204/GTX/LMK04828/AD9144/AD9250 initialization is kept from the vendor demo.
+  - The vendor sine ROM path is retained, but its ROM address step, amplitude scale, and phase offset are controlled by keys.
+  - This is a conservative oscilloscope-visible control demo, not the final full `awg_core` JESD integration.
+- Key behavior:
+  - `key0` is `A26`; `key1` is `A25`; both are active-low board buttons.
+  - Default mode is amplitude mode (`ui_mode=1`), default amplitude is about 75 percent.
+  - Press/release `key0`: increase current mode setting.
+  - Press/release `key1`: decrease current mode setting.
+  - Hold both keys for about 250 ms: switch edit mode.
+  - LED output shows `ui_mode`: `0=frequency`, `1=amplitude`, `2=phase`.
+- Scope expectations:
+  - Probe AD9144 `OUT1` first with 50 ohm termination.
+  - After programming, wait 12-15 seconds before judging output.
+  - In default mode, pressing `key0` should increase amplitude toward full-scale; pressing `key1` should reduce amplitude.
+  - Phase mode changes the ROM phase offset but is not a good single-channel pass/fail test; use a stable external reference or a second channel if phase must be judged.
+- Frequency/phase artifact fix:
+  - The AD9144 vendor path packs four DAC samples into each JESD TX beat.
+  - The known-good 50 MHz pattern is `0,5,10,15,20...` in the 100-entry sine ROM.
+  - Do not change only the beat-to-beat address increment. The four samples inside the beat must use `0,1,2,3` times the selected sample step, and the next beat must advance by `4 * sample_step`.
+  - If this relationship is broken, low frequencies show phase-slip artifacts and high frequencies show obvious waveform distortion.
+  - Regression check: `powershell -NoProfile -ExecutionPolicy Bypass -File D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_button_sequence.ps1`.
+- Fresh verification on 2026-05-06:
+  - First build failed because PowerShell wrote a UTF-8 BOM into the copied vendor `top.v`; Vivado reported illegal bytes `EF BB BF`.
+  - BOM was removed and the retry build completed with `write_bitstream completed successfully`.
+  - Generated bitstream size: 3,225,126 bytes.
+  - Hardware programming completed with `End of startup status: HIGH`.
+  - Vivado reported 3 ILA cores and 1 VIO core after programming; missing probes warning only affects debug-core viewing, not analog output.
+
+## 16. AD9144 AWG Button Artifact Fix Addendum (2026-05-06)
+
+- User observation after first scope test:
+  - 50 MHz was mostly smooth with slight artifacts.
+  - Lower frequency showed clear phase-misalignment artifacts.
+  - Higher frequency showed obvious waveform distortion.
+- Root cause:
+  - The first AWG button variant treated the frequency setting as a beat-to-beat ROM address step but kept the four in-beat sample offsets fixed at `+5/+10/+15`.
+  - That produced nonuniform sample order such as `0,5,10,15,1,6...` at low frequency or `0,5,10,15,25,30...` at high frequency.
+- Fix:
+  - `sample_step_from_sel()` now returns the per-DAC-sample ROM step.
+  - In-beat addresses are `phase + 0*step`, `phase + 1*step`, `phase + 2*step`, `phase + 3*step`.
+  - The next JESD beat advances by `4*step`.
+  - Default frequency selection is `3'd4`, mapping to `step=5`, preserving the known-good 50 MHz baseline.
+  - Frequency choices are intentionally conservative for this ROM demo: about 10, 20, 30, 40, 50, 80, and 100 MHz. Higher final AWG frequencies should be implemented with the real NCO/waveform path rather than this 100-point ROM demo.
+- Verification:
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_button_sequence.ps1` validates every frequency selection has constant inter-sample phase spacing across JESD beat boundaries.
+
+## 17. AD9144 AWG Button DDS4 Addendum (2026-05-06)
+
+- Current button variant no longer uses the 100-point ROM as the active waveform source.
+- New RTL:
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_dds4.v`
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sample_packer.v`
+- Data source:
+  - 4096-point sine table copied to `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sine_4096.hex`
+  - `phase_inc_from_sel()` now maps the button-selected frequency directly to a 48-bit DDS increment.
+- Integration:
+  - `top.v` instantiates `ad9144_awg_dds4` and `ad9144_sample_packer`.
+  - `create_awg_button_project.tcl` must add `rtl/awg/*.v` to `sources_1`.
+  - `check_awg_button_sequence.ps1` now checks DDS increment constants, phase offsets, and the sample packer byte order.
+- Keep the old ROM artifact fix addendum below as the history of the 100-point demo path. The DDS4 path is the current working direction for better frequency continuity and less visible phase-slip.
+- Build and program result:
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
+  - Programming completed successfully after repowering the board; Vivado reported `End of startup status: HIGH`.
+  - The remaining probe-file mismatch warning is only about ILA/VIO debug probe association and does not block the programmed design from running.
+- Board observation after reprogramming at 2026-05-06 23:38:
+  - AD9144 `OUT1` output is present after the normal 12-15s initialization wait.
+  - User confirmed both frequency and amplitude buttons produce visible oscilloscope changes.
+  - Phase mode is expected to be hard to judge on a single-channel oscilloscope trace; use a reference/second channel or ILA before treating phase as failed.
+  - This is now the known-good AD9144 button baseline for future changes. If later work loses analog output, first reprogram this bit and confirm OUT1 frequency/amplitude controls before debugging deeper logic.
+
+## 18. AD9144 AWG Core Formalization Plan (2026-05-06)
+
+- Plan file: `D:\FPGA\docs\superpowers\plans\2026-05-06-ad9144-awg-core-formalization.md`
+- Immediate direction:
+  - Preserve the verified AD9144/JESD/LMK/SPI bring-up path.
+  - Move the currently working DDS4 + sample packing path toward a reusable AWG core boundary.
+  - Add oscilloscope-visible waveform modes next, starting with sine/square/triangle/saw.
+  - Add ILA-visible observability for `ui_mode`, frequency/amplitude/phase selections, waveform mode, generated samples, and `w_tx_tdata` before relying on analog symptoms alone.
+- Implemented first waveform-mode step:
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_dds4.v` now supports `wave_mode`: `0=sine`, `1=square`, `2=triangle`, `3=saw`.
+  - `D:\FPGA\ad9144_bringup_k325t\variants\awg_button\top.v` now cycles UI modes as `0=frequency`, `1=amplitude`, `2=phase`, `3=waveform`.
+  - In waveform mode, `KEY0` advances waveform and `KEY1` decrements waveform.
+  - Regression: `D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_button_sequence.ps1` passes.
+  - Bitstream build completed and wrote `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit` at 2026-05-07 00:31:32.
+  - Programming completed at 2026-05-07 00:32 with startup status `HIGH`.
+  - Timing note: bitstream generation succeeds, but routed timing still reports known vendor/debug/CDC style violations (`WNS` about `-3.24ns`, mostly async/cross-clock paths). Treat current bit as oscilloscope bring-up/demo quality until CDC constraints and debug paths are cleaned.
+
+## 19. AD9144 Waveform Demo Archive Baseline (2026-05-07)
+
+- User-confirmed oscilloscope observations for the current `top_awg_button.bit`:
+  - AD9144 `OUT1` has analog output after the normal 12-15s init wait.
+  - Frequency mode changes are visible on the oscilloscope.
+  - Amplitude mode changes are visible on the oscilloscope.
+  - Waveform mode cycles through sine, square, triangle, and saw; all modes switch normally.
+  - Phase mode is not a reliable single-channel oscilloscope pass/fail item. Verify it later with a reference channel or ILA.
+  - All waveform modes still have some visible distortion. This is acceptable for the current bring-up/demo baseline, but not acceptable as the final competition-quality AWG output.
+- Archive baseline:
+  - Source branch: `codex/ad9144-button-step-fix`
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
+  - Current bit timestamp: 2026-05-07 00:31:32
+  - Expected remote tag: `ad9144-waveform-demo-20260507`
+- If the board is powered off, the FPGA loses the JTAG-loaded design. At the next session, reprogram the bit before judging output:
+  - `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\FPGA\ad9144_bringup_k325t\scripts\program_awg_button.tcl`
+- Default UI after programming:
+  - `ui_mode=1` amplitude mode.
+  - Hold both keys about 250 ms to cycle modes: `1=amplitude -> 2=phase -> 3=waveform -> 0=frequency -> 1=amplitude`.
+  - LED pins display `ui_mode`.
+- Next engineering priorities:
+  - Add ILA/probe visibility for `freq_sel`, `amp_sel`, `phase_sel`, `wave_sel`, generated samples, and `w_tx_tdata`.
+  - Clean known routed timing/CDC/debug-path violations before treating this as a stable engineering release.
+  - Improve waveform quality: characterize distortion versus frequency, amplitude, waveform mode, termination, and DAC output channel.
+  - Move from the button demo toward a register-controlled AWG interface for the later PC frontend.
+
+## 20. AD9144 Register Skeleton and Debug ILA Build (2026-05-07)
+
+- Added the first register-control boundary without changing the verified button-demo behavior:
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_reg_bank.v`
+  - `D:\FPGA\ad9144_bringup_k325t\docs\awg_register_map.md`
+- Current top-level behavior:
+  - `u_ad9144_awg_reg_bank` is instantiated in `D:\FPGA\ad9144_bringup_k325t\variants\awg_button\top.v`.
+  - Its write/read bus is tied idle for now.
+  - Reset default is `CONTROL=0x00000001`, so `output_enable=1` and `use_reg_control=0`.
+  - Therefore the hardware-verified KEY0/KEY1 path remains the active control path.
+  - If a future control master sets `CONTROL[1]=1`, the AWG will use register values for phase increment, phase offset, amplitude, offset, and waveform mode.
+- Register map draft:
+  - `0x00 ID = 0x41574731` (`AWG1`)
+  - `0x04 VERSION = 0x20260507`
+  - `0x08 CONTROL`: bit0 `output_enable`, bit1 `use_reg_control`
+  - `0x10/0x14 PHASE_INC`
+  - `0x18/0x1C PHASE_OFFSET`
+  - `0x20 AMPLITUDE`
+  - `0x24 OFFSET`
+  - `0x28 WAVE_MODE`
+  - `0x2C APPLY`
+  - `0x30 BUTTON_STATE`
+- Added debug build/capture scripts:
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\build_awg_button_debug.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\capture_awg_button_debug.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_register_debug_wiring.ps1`
+- Debug ILA build result:
+  - Preferred command: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -tempDir C:/tmp/vivado_awg_debug_temp -journal C:/tmp/vivado_awg_button_debug.jou -log C:/tmp/vivado_awg_button_debug.log -source D:\FPGA\ad9144_bringup_k325t\scripts\build_awg_button_debug.tcl`
+  - Result: `write_bitstream completed successfully`
+  - Extra AWG debug nets connected: `384`
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button_debug.bit`
+  - Probes: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button_debug.ltx`
+  - Timestamp: 2026-05-07 02:31
+- License/temp-directory caution:
+  - If Vivado is launched from a restricted agent sandbox, it may fail with `[Common 17-345] A valid license was not found` even though `C:\Users\17844\AppData\Roaming\XilinxLicense\Xlnx_2024.lic` is still present and valid. Re-run from the normal user environment before concluding that the license is broken.
+  - If `synth_design` reports `Synthesis finished with 0 errors` and then fails on `error deleting "D:/FPGA/.Xil/.../straps.rtd": permission denied`, the RTL and license are not the root cause. Use the preferred command above with `-tempDir C:/tmp/...` and `C:/tmp` logs/journals to avoid the `D:\FPGA\.Xil` cleanup failure.
+- Debug observable groups:
+  - `awg_debug_ctrl`: link/control/mode/select state
+  - `awg_debug_samples`: `sample3..sample0`
+  - `awg_debug_tdata_lo`: final JESD TX data `[63:0]`
+  - `awg_debug_tdata_hi`: final JESD TX data `[127:64]`
+  - `awg_debug_phase_inc`: active 48-bit DDS phase increment
+  - `awg_debug_phase_offset`: active 48-bit phase offset
+- Timing note:
+  - Debug bitstream is generated, but timing is still not clean.
+  - Routed summary for the debug build reported about `WNS=-3.179ns`, `TNS=-2393.698ns`, `807` setup failing endpoints, and no hold failures.
+  - Most remaining failures remain in async/vendor/debug/CDC style paths. Use this bit for ILA bring-up only, not as a final engineering release.
