@@ -1,43 +1,55 @@
-# K325T AWG FPGA 项目笔记
+---
+type: dashboard
+updated: 2026-05-06
+tags:
+  - k325t
+  - awg
+  - dashboard
+---
 
-> 第二十一届研电赛优利德赛题二 —— 基于 Kintex-7 的任意波形发生器（AWG）FPGA 数字基带平台
+# K325T AWG 项目笔记
+
+本 vault 是研电赛优利德赛题二 AWG 项目的工程笔记。打开 Obsidian 后先看本页，再进入 [[当前状态]] 和 [[License与JESD204授权]]。
+
+## 当前结论
+
+| 事项 | 状态 | 说明 |
+|---|---|---|
+| K325T Synthesis/Implementation license | 可用 | `trial.lic` 已验证到 `K325T_SYNTHESIS_TEST_OK` |
+| DDS LED 工程 | 已生成 bit | 路径见 [[DDS波形生成]] |
+| AD9144 standalone 工程 | 综合/布局/布线通过 | 见 [[AD9144 Bring-Up]] |
+| AD9144 bitstream | 阻塞 | 缺 JESD204 LogiCORE bitstream 授权 |
+| 示波器看 AD9144 输出 | 暂缓 | 先解决 license 并用 ILA 验证链路 |
 
 ## 快速入口
 
-- [[项目简介]] — 项目背景、目标、竞赛要求
-- [[硬件平台]] — K325T 开发板 + FMC ADDA 子卡资源
-- [[软件工具链]] — Vivado 2024.1、Git、仿真环境
-- [[顶层架构图]] — 系统模块划分与数据流
-- [[开发路线图]] — 从 LED 到 FMC 高速 DAC 的完整路线
-- [[待办事项]] — 当前阻断项与下一步任务
+- [[当前状态]]：今天能做什么、卡在哪里。
+- [[开发路线图]]：从 LED 到 AD9144、PCIe、DDR3 的阶段计划。
+- [[顶层架构图]]：系统模块关系和数据流。
+- [[JESD204数据链路]]：AD9144 通路、license 边界、ILA 检查。
+- [[FMC引脚速查]]：K325T FMC HPC 高速和低速引脚。
+- [[K325T约束速查]]：XDC 约束怎么写、从哪里查。
+- [[Vivado常见错误]]：常见错误和处理方式。
+- [[路径与文件索引]]：所有关键工程、脚本、报告和资料路径。
 
-## 项目状态
+## 建议工作流
 
-| 阶段 | 状态 | 备注 |
-|---|---|---|
-| License & LED 闭环 | ✅ 完成 | Vivado trial + LED bitstream |
-| DDS 波形生成 | ✅ 完成 | IP核 + 手写NCO（未接入） |
-| 教学 DAC 验证 | ✅ 完成 | ATK-HS-ADDA 8bit 接口 |
-| FMC 子卡驱动 | 🔄 进行中 | JESD204 链路建立中 |
-| PCIe XDMA 控制 | ⏳ 待启动 | 需先完成 JESD204 |
-| DDR3 波形缓冲 | ⏳ 待启动 | 大容量波形存储 |
-
-## 关键路径
-
+```mermaid
+flowchart TD
+    A["阅读当前状态"] --> B["确认 license 边界"]
+    B --> C{"是否已有 JESD204 bitstream license?"}
+    C -- "否" --> D["暂停 AD9144 bitstream；继续 DDS/扫频/幅度偏置模块"]
+    C -- "是" --> E["重新生成 IP output products"]
+    E --> F["运行 build_direct.tcl"]
+    F --> G["生成 top_direct.bit"]
+    G --> H["Hardware Manager 查看 ILA/VIO"]
+    H --> I["链路稳定后再接示波器"]
 ```
-License → LED → clk_reset → DDS → amp_offset_scale → 教学DAC → FMC ADDA(JESD204) → BRAM波形 → PCIe → DDR3 → 校准
-```
 
-## 重要文档
+## 外部权威文档
 
-- 竞赛 PDF: `D:\FPGA\第二十一届研电赛优利德命题 (1).pdf`
-- 正点原子开发指南: `D:\FPGA\Kintex7\Kintex7\2_文档教程\【正点原子】Kintex7之FPGA开发指南V1.3.pdf`
-- FMC 子卡资料: `D:\FPGA\FMCADDA-9250-9144\`
-- AGENTS.md: `D:\FPGA\AGENTS.md`
-
-## 仓库
-
-```
-D:\awg_fpga\          (主工程 RTL + Vivado)
-https://github.com/CYberkra/Electronics-Competition.git
-```
+- 项目 handoff 主文档：`D:\FPGA\AGENTS.md`
+- 正点原子 FPGA 开发指南：`D:\FPGA\Kintex7\Kintex7\2_文档教程\【正点原子】Kintex7之FPGA开发指南V1.3.pdf`
+- K7 底板原理图：`D:\FPGA\Kintex7\Kintex7\3_开发板原理图\K7_BASE_1V3_2025_0111_USER.pdf`
+- K7 IO 约束参考：`D:\FPGA\Kintex7\Kintex7\3_开发板原理图\K7_IO.xdc`
+- AD9144 bring-up 包：`D:\FPGA\ad9144_bringup_k325t`

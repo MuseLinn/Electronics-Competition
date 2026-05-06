@@ -1,108 +1,70 @@
+---
+type: module
+updated: 2026-05-06
+tags:
+  - dds
+  - waveform
+  - awg
+---
+
 # DDS 波形生成
 
-## 两种实现路线
+## 已完成内容
 
-| 路线 | 当前状态 | 文件 | 特点 |
-|---|---|---|---|
-| **Xilinx IP** | ✅ 工程已接入 | `rtl/dds/dds_compiler_wrapper.v` | 48bit phase, 即用即稳 |
-| **手写 NCO** | ✅ 仿真通过, ⏳ 未接入工程 | `rtl/dds/dds_nco.v` + `sine_lut.v` | 64bit phase, 更高分辨率 |
+`D:\awg_fpga` 中的 DDS Compiler 验证路径已经跑通：
 
-## 手写 DDS 架构 (目标方案)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        dds_nco.v                             │
-│  parameter PHASE_W = 64, ADDR_W = 12, DATA_W = 16           │
-│                                                              │
-│  ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐ │
-│  │ phase_inc   │───→│  phase_acc      │───→│ addr[11:0]  │ │
-│  │ (64bit)     │    │  64bit累加器     │    │ LUT地址     │ │
-│  └─────────────┘    └─────────────────┘    └─────────────┘ │
-│         ↑                                              ↓    │
-│  ┌─────────────┐                              ┌─────────────┐│
-│  │phase_offset │                              │  sine_lut   ││
-│  │ (64bit)     │                              │ 4096×16bit  ││
-│  └─────────────┘                              │ 1/4周期存储 ││
-│                                                └─────────────┘│
-│                                                       ↓       │
-│                                                ┌─────────────┐│
-│                                                │ sample[15:0]││
-│                                                │ 有符号16bit  ││
-│                                                └─────────────┘│
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 频率分辨率
-
-```
-分辨率 = f_clk / 2^PHASE_W
-
-48bit (Xilinx IP) @ 100MHz:
-    = 100,000,000 / 2^48
-    = 100,000,000 / 281,474,976,710,656
-    ≈ 0.355 nHz
-    
-64bit (手写 NCO) @ 5GSa/s:
-    = 5,000,000,000 / 2^64
-    ≈ 2.71 × 10^-10 Hz
-    
-竞赛要求 1mHz → 48bit 完全满足，64bit 是架构灵活性考虑
-```
-
-## 波形类型
-
-`wave_shape_gen.v` 支持：
-
-| 波形 | 生成方式 | 特点 |
-|---|---|---|
-| **正弦** | LUT 查表 | 标准 DDS 输出，THD 取决于 LUT 深度 |
-| **方波** | MSB(phase_acc) | 最简单，谐波丰富 |
-| **三角波** | 地址镜像 | phase[MSB-1] 决定斜率方向 |
-| **锯齿波** | 直接输出地址 | 线性 ramp |
-| **任意波** | BRAM/DDR3 回放 | 用户上传波形表 |
-
-## 关键频率参数
-
-### 当前教学DAC版本 (100M clk)
-
-| 目标频率 | phase_inc (48bit hex) |
+| 项目 | 状态 |
 |---|---|
-| 1 Hz | `48'h0000000002AF31` |
-| 1 MHz | `48'h28f5c28f5c2` |
-| 2 MHz | `48'h51eb851eb84` |
-| 10 MHz | `48'h19999999999` |
+| DDS Compiler IP 配置 | 已完成 |
+| Wrapper 封装 | 已完成 |
+| 行为仿真 | 1 MHz / 2 MHz / 0 Hz 通过 |
+| LED 板级测试 bitstream | 已生成 |
 
-### FMC版本目标 (250M link clock / 500M DACCLK)
+bit 文件：
 
-```
-f_out = phase_inc × f_dac / 2^64
-
-10 MHz @ 500MHz DACCLK:
-    phase_inc = 10M × 2^64 / 500M
-              ≈ 64'h0CCCCCCCCCCCCCCD
+```text
+D:\awg_fpga\vivado\awg_k325t.runs\impl_1\awg_dds_led_top.bit
 ```
 
-## 接口兼容性
+## DDS Compiler 参数
 
-手写 DDS 设计为 **drop-in replacement** for `dds_compiler_wrapper`：
+| 参数 | 值 |
+|---|---|
+| Phase Width | 48 bit |
+| Output Width | 16 bit signed |
+| Phase Increment | Programmable |
+| Phase Out | disabled |
 
-```verilog
-// 相同接口，上层无需改动
-dds_compiler_wrapper dds_inst (
-    .clk       (clk),
-    .rst_n     (rst_n),
-    .freq_load (freq_load),
-    .phase_inc (phase_inc),
-    .sine_out  (sine_out),
-    .out_valid (out_valid)
-);
+频率公式：
+
+```text
+f_out = phase_inc * f_clk / 2^48
+phase_inc = f_out * 2^48 / f_clk
 ```
 
-## 已知问题
+常用值：
 
-- `wave_shape_gen.v` 方波测试在 256 拍窗口内 `peak_min` 捕获问题
-  - 原因: 统计周期不足
-  - 解决: testbench 延长观察周期或放宽预期
-- `amp_offset_scale.v` `amplitude=0x7FFF` 时存在 ±1 截断误差
-  - 原因: 定点乘法舍入
-  - 解决: testbench 已放宽容差
+| 目标频率 | 时钟 | Phase Inc |
+|---|---:|---|
+| 1 MHz | 100 MHz | `48'h28f5c28f5c2` |
+| 2 MHz | 100 MHz | `48'h51eb851eb84` |
+| 1 Hz | 100 MHz | `48'h0000000002AF31` |
+| 1 mHz | 100 MHz | `48'h0000000000000B` |
+
+## 与 AD9144 路线的关系
+
+DDS 本身不是当前阻塞。AD9144 standalone bring-up 目前使用 vendor ROM waveform，而不是最终 DDS 数据。正确顺序：
+
+1. 用 vendor ROM 证明 JESD/AD9144 链路活着。
+2. 用 ILA 看到 TX sample data 正在变化。
+3. 再把 DDS/BRAM/DDR 数据接入 JESD transport。
+
+## 关联文件
+
+```text
+D:\awg_fpga\rtl\dds\dds_compiler_wrapper.v
+D:\awg_fpga\rtl\top\awg_dds_led_top.v
+D:\awg_fpga\sim\tb\tb_dds_compiler.v
+D:\awg_fpga\constraints\awg_dds_led_top.xdc
+```
+
