@@ -1522,3 +1522,29 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Bitstream build completed and wrote `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit` at 2026-05-07 00:31:32.
   - Programming completed at 2026-05-07 00:32 with startup status `HIGH`.
   - Timing note: bitstream generation succeeds, but routed timing still reports known vendor/debug/CDC style violations (`WNS` about `-3.24ns`, mostly async/cross-clock paths). Treat current bit as oscilloscope bring-up/demo quality until CDC constraints and debug paths are cleaned.
+
+## 19. AD9144 Waveform Demo Archive Baseline (2026-05-07)
+
+- User-confirmed oscilloscope observations for the current `top_awg_button.bit`:
+  - AD9144 `OUT1` has analog output after the normal 12-15s init wait.
+  - Frequency mode changes are visible on the oscilloscope.
+  - Amplitude mode changes are visible on the oscilloscope.
+  - Waveform mode cycles through sine, square, triangle, and saw; all modes switch normally.
+  - Phase mode is not a reliable single-channel oscilloscope pass/fail item. Verify it later with a reference channel or ILA.
+  - All waveform modes still have some visible distortion. This is acceptable for the current bring-up/demo baseline, but not acceptable as the final competition-quality AWG output.
+- Archive baseline:
+  - Source branch: `codex/ad9144-button-step-fix`
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
+  - Current bit timestamp: 2026-05-07 00:31:32
+  - Expected remote tag: `ad9144-waveform-demo-20260507`
+- If the board is powered off, the FPGA loses the JTAG-loaded design. At the next session, reprogram the bit before judging output:
+  - `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\FPGA\ad9144_bringup_k325t\scripts\program_awg_button.tcl`
+- Default UI after programming:
+  - `ui_mode=1` amplitude mode.
+  - Hold both keys about 250 ms to cycle modes: `1=amplitude -> 2=phase -> 3=waveform -> 0=frequency -> 1=amplitude`.
+  - LED pins display `ui_mode`.
+- Next engineering priorities:
+  - Add ILA/probe visibility for `freq_sel`, `amp_sel`, `phase_sel`, `wave_sel`, generated samples, and `w_tx_tdata`.
+  - Clean known routed timing/CDC/debug-path violations before treating this as a stable engineering release.
+  - Improve waveform quality: characterize distortion versus frequency, amplitude, waveform mode, termination, and DAC output channel.
+  - Move from the button demo toward a register-controlled AWG interface for the later PC frontend.
