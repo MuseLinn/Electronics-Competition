@@ -1397,6 +1397,7 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Normal bit: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_base.tcl`
   - Debug bit/ltx: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_debug.tcl`
   - Hardware program/capture: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\program_and_capture_awg_debug.tcl`
+  - Hardware capture without reprogramming: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\capture_awg_debug_no_program.tcl`
 - Output files:
   - Normal bit: `D:\awg_fpga\vivado\awg_k325t.runs\impl_1\awg_dds_led_top.bit`
   - Stable debug bit: `D:\awg_fpga\artifacts\debug\awg_dds_led_top_debug.bit`
@@ -1414,7 +1415,9 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Initial `open_hw_target` failure was caused by board power being off. After power was restored, Vivado detected `xc7k325t_0`.
   - Debug bit programming succeeded with startup status `HIGH`.
   - `program_and_capture_awg_debug.tcl` must set `BSCAN_SWITCH_USER_MASK=1`; otherwise Hardware Manager may not find `dbg_hub` on user scan chain 1.
+  - `program_and_capture_awg_debug.tcl` reprograms the FPGA before capture, so it resets the button/UI state to defaults. Do not use it to judge whether button presses were retained. Use `capture_awg_debug_no_program.tcl` after programming the debug bit once and after operating the buttons.
   - Successful ILA capture: `D:\awg_fpga\measurements\ila\capture_20260506_181837\hw_ila_1.csv`.
+  - No-program capture on 2026-05-06 confirmed the current debug design was still loaded (`1 ILA core`) and captured the default state without reset: `ui_mode=0`, `wave_mode=0`, `phase_inc=0000002af31e`, `amplitude=4000`, `offset=0000`.
   - Captured CSV includes `key0/key1/rst_n/ui_mode/wave_mode/freq_load/phase_inc/amplitude/offset/awg_sample/sample_valid/da_data/led`.
   - Default output is 1Hz, so a 2048-sample ILA window at 100MHz shows little visible waveform movement unless controls are changed or a faster debug frequency is used.
 
@@ -1497,3 +1500,17 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
   - Programming completed successfully after repowering the board; Vivado reported `End of startup status: HIGH`.
   - The remaining probe-file mismatch warning is only about ILA/VIO debug probe association and does not block the programmed design from running.
+- Board observation after reprogramming at 2026-05-06 23:38:
+  - AD9144 `OUT1` output is present after the normal 12-15s initialization wait.
+  - User confirmed both frequency and amplitude buttons produce visible oscilloscope changes.
+  - Phase mode is expected to be hard to judge on a single-channel oscilloscope trace; use a reference/second channel or ILA before treating phase as failed.
+  - This is now the known-good AD9144 button baseline for future changes. If later work loses analog output, first reprogram this bit and confirm OUT1 frequency/amplitude controls before debugging deeper logic.
+
+## 18. AD9144 AWG Core Formalization Plan (2026-05-06)
+
+- Plan file: `D:\FPGA\docs\superpowers\plans\2026-05-06-ad9144-awg-core-formalization.md`
+- Immediate direction:
+  - Preserve the verified AD9144/JESD/LMK/SPI bring-up path.
+  - Move the currently working DDS4 + sample packing path toward a reusable AWG core boundary.
+  - Add oscilloscope-visible waveform modes next, starting with sine/square/triangle/saw.
+  - Add ILA-visible observability for `ui_mode`, frequency/amplitude/phase selections, waveform mode, generated samples, and `w_tx_tdata` before relying on analog symptoms alone.
