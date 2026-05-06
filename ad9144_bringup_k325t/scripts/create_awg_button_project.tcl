@@ -1,11 +1,32 @@
 # Create a Vivado project for the K325T AD9144 AWG button-control variant.
 
-set proj_root "D:/FPGA/ad9144_bringup_k325t"
-set proj_dir  "$proj_root/vivado_awg_button"
-set part_name "xc7k325tffg900-2"
-set vendor_src "D:/FPGA/FMCADDA-9250-9144/extracted_k7_full/fmcadda_9250_9144_demo_dac4L_k7/fmcadda_9250_9144.srcs"
-set variant_top "$proj_root/variants/awg_button/top.v"
-set coe_src "$proj_root/ip_data/sine.coe"
+if {![info exists proj_root]} {
+    set proj_root "D:/FPGA/ad9144_bringup_k325t"
+}
+if {![info exists proj_dir]} {
+    set proj_dir  "$proj_root/vivado_awg_button"
+}
+if {![info exists project_name]} {
+    set project_name "ad9144_awg_button_k325t"
+}
+if {![info exists part_name]} {
+    set part_name "xc7k325tffg900-2"
+}
+if {![info exists vendor_src]} {
+    set vendor_src "D:/FPGA/FMCADDA-9250-9144/extracted_k7_full/fmcadda_9250_9144_demo_dac4L_k7/fmcadda_9250_9144.srcs"
+}
+if {![info exists variant_top]} {
+    set variant_top "$proj_root/variants/awg_button/top.v"
+}
+if {![info exists coe_src]} {
+    set coe_src "$proj_root/ip_data/sine.coe"
+}
+if {![info exists extra_constraints]} {
+    set extra_constraints [list]
+}
+if {![info exists verilog_defines]} {
+    set verilog_defines [list]
+}
 
 if {![file exists "$vendor_src/sources_1/new/top.v"]} {
     error "Vendor source tree not found: $vendor_src"
@@ -21,9 +42,12 @@ if {![file exists $coe_src]} {
 file copy -force $coe_src "D:/FPGA/sine.coe"
 file copy -force $coe_src "D:/FPGA/FMCADDA-9250-9144/sine.coe"
 
-create_project -force ad9144_awg_button_k325t $proj_dir -part $part_name
+create_project -force $project_name $proj_dir -part $part_name
 set_property target_language Verilog [current_project]
 set_property simulator_language Verilog [current_project]
+if {[llength $verilog_defines] > 0} {
+    set_property verilog_define $verilog_defines [get_filesets sources_1]
+}
 
 foreach src [glob "$vendor_src/sources_1/new/*.v"] {
     if {[file tail $src] ne "top.v"} {
@@ -36,6 +60,12 @@ foreach src [glob "$proj_root/rtl/awg/*.v"] {
 add_files -fileset sources_1 $variant_top
 add_files -fileset constrs_1 "$proj_root/constraints/top_k325t_fmc.xdc"
 add_files -fileset constrs_1 "$proj_root/constraints/awg_button_k325t.xdc"
+foreach extra_xdc $extra_constraints {
+    if {![file exists $extra_xdc]} {
+        error "Missing extra constraint file: $extra_xdc"
+    }
+    add_files -fileset constrs_1 $extra_xdc
+}
 
 set ip_files [list \
     "$vendor_src/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0.xci" \
@@ -61,4 +91,4 @@ set_property top top [get_filesets sources_1]
 update_compile_order -fileset sources_1
 report_ip_status -name ip_status_initial
 
-puts "PROJECT_CREATED=$proj_dir/ad9144_awg_button_k325t.xpr"
+puts "PROJECT_CREATED=$proj_dir/$project_name.xpr"

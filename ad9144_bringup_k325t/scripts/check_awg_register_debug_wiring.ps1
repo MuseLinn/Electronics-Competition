@@ -45,8 +45,10 @@ foreach ($pattern in @(
 
 foreach ($pattern in @(
     'ad9144_awg_reg_bank\s+u_ad9144_awg_reg_bank',
-    '\.cfg_wr_en\s*\(\s*1''b0\s*\)',
-    '\.cfg_rd_en\s*\(\s*1''b0\s*\)',
+    '\.cfg_wr_en\s*\(\s*awg_cfg_wr_en\s*\)',
+    '\.cfg_rd_en\s*\(\s*awg_cfg_rd_en\s*\)',
+    'assign\s+awg_cfg_wr_en\s+=\s+1''b0;',
+    'assign\s+awg_cfg_rd_en\s+=\s+1''b0;',
     'wire\s+\[47:0\]\s+phase_inc\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_phase_inc\s+:\s+key_phase_inc;',
     'wire\s+\[15:0\]\s+amp_q15\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_amplitude_q15\s+:\s+key_amp_q15;',
     'wire\s+\[1:0\]\s+wave_mode\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_wave_mode\s+:\s+key_wave_mode;',

@@ -9,7 +9,7 @@
 > - **踩坑记录**：查看 [6. 经验教训](#6-经验教训) 避免重复犯错
 > - **操作指南**：查看 [8. 操作指南](#8-操作指南) 获取常用命令
 >
-> **最后更新**: 2026-05-06
+> **最后更新**: 2026-05-07
 > **维护者**: Sisyphus Agent
 
 ---
@@ -196,7 +196,7 @@ Phase 2: 完整系统
 | 工程 | 路径 | 状态 | 最后更新 |
 |------|------|------|----------|
 | **awg_k325t** (DDS) | `D:\awg_fpga` | ✅ BRAM waveform + sweep_engine 已接入；`tb_awg_core` 与 base bitstream 重建通过 | 2026-05-06 |
-| **ad9144_bringup_k325t** (JESD204 vendor demo) | `D:\FPGA\ad9144_bringup_k325t` | 🔎 `top_direct.bit` 已烧录；等待 15s 后 TX/RX ILA clock 可用；AD9144 TX 侧 QPLL/reset/tready/SYNC/SYSREF/data 正常，AD9250 RX `tvalid=0` | 2026-05-06 |
+| **ad9144_bringup_k325t** (JESD204 + AD9144 AWG) | `D:\FPGA\ad9144_bringup_k325t` | ✅ OUT1 已实测有输出；button demo 可调频率/幅度/波形；UART register-control bit 已生成，待下次上板验证 | 2026-05-07 |
 | **fpga_only_diag** | `D:\FPGA\fpga_only_diag` | ✅ K325T 本体/JTAG/板载 100MHz/ILA 验证通过 | 2026-05-06 |
 | **awg_k325t** (JESD204 integration) | `D:\awg_fpga` | ⏸ 等 standalone 建链验证后再集成 | 2026-05-06 |
 | **1_led** | `D:\k7\325\1_led` | ✅ 已验证 | 2026-05-02 |
@@ -1354,6 +1354,8 @@ If this is missing, the AD9144 path may link but output a flat waveform.
 | 2026-05-06 | **开始 AWG core 前端**：新增 `rtl/dsp/awg_core.v`，把 DDS / 波形选择 / 幅度 / 偏置串成统一前端；`tb_awg_core` 已对拍通过，并已接入 `awg_dds_led_top.v` | Codex |
 | 2026-05-06 | **落地 Phase 1 AWG 模式扩展**：新增 `sweep_engine.v` 与 `bram_wave_player.v`，`wave_mode` 扩展到 0-6；`tb_awg_core` 新增 BRAM/sweep 回归并通过，`rebuild_awg_base.tcl` 已生成最新 `awg_dds_led_top.bit` | Codex |
 
+| 2026-05-07 | **新增 AD9144 UART register-control variant**：保留已验证 button demo，新增 `AWG_UART_CONTROL` 编译变体、UART RX/TX/ASCII register bridge、UART XDC、host Python 工具和明天上板 checklist；已生成 `top_awg_uart.bit`，但 routed setup timing 仍未收敛，仅作为 bring-up/demo bit | Codex |
+
 ### 下次更新建议
 
 - [x] 拿到可用 JESD204 LogiCORE license 后，记录 license 文件名、加载方式和状态
@@ -1611,3 +1613,56 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Debug bitstream is generated, but timing is still not clean.
   - Routed summary for the debug build reported about `WNS=-3.179ns`, `TNS=-2393.698ns`, `807` setup failing endpoints, and no hold failures.
   - Most remaining failures remain in async/vendor/debug/CDC style paths. Use this bit for ILA bring-up only, not as a final engineering release.
+
+## 21. AD9144 UART Register-Control Variant (2026-05-07)
+
+- Purpose: add the first PC-controllable AWG path while preserving the user-confirmed button/waveform demo as the fallback baseline.
+- This variant is compile-time selected with `AWG_UART_CONTROL`; the default button project still has no UART top-level ports and keeps the register write/read bus idle.
+- New protocol/board docs:
+  - `D:\FPGA\ad9144_bringup_k325t\docs\ad9144_uart_control_protocol.md`
+  - `D:\FPGA\ad9144_bringup_k325t\docs\next_board_session_checklist.md`
+- New UART RTL:
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\uart_rx.v`
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\uart_tx.v`
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_uart_reg_bridge.v`
+- UART pins:
+  - `uart_rxd -> T23`, `LVCMOS33`
+  - `uart_txd -> T22`, `LVCMOS33`
+  - Constraint file: `D:\FPGA\ad9144_bringup_k325t\constraints\awg_uart_k325t.xdc`
+- Host tool:
+  - `D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py`
+  - Requires Python 3 and `pyserial` for live board access.
+  - Smoke command after programming and the normal 12-15s AD9144 startup wait:
+    `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM3 status`
+- Protocol summary:
+  - UART: 115200 baud, 8N1.
+  - Write: `W <addr_hex_2> <data_hex_8>`.
+  - Read: `R <addr_hex_2>`.
+  - Expected ID read: `R 00` -> `D 41574731`.
+  - Register-control enable: write `CONTROL=0x00000003` (`output_enable=1`, `use_reg_control=1`).
+  - Fall back to physical buttons without reprogramming: write `CONTROL=0x00000001`.
+- Build/program commands:
+  - Build: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -tempDir C:/tmp/vivado_awg_uart_temp -journal C:/tmp/vivado_awg_uart.jou -log C:/tmp/vivado_awg_uart.log -source D:\FPGA\ad9144_bringup_k325t\scripts\build_awg_uart_direct.tcl`
+  - Program: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\FPGA\ad9144_bringup_k325t\scripts\program_awg_uart.tcl`
+- Build result on 2026-05-07:
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_uart\top_awg_uart.bit`
+  - Bitstream timestamp: 2026-05-07 03:03:38
+  - Size: 3,316,326 bytes
+  - Log: `C:\tmp\vivado_awg_uart.log`
+  - Vivado reported `write_bitstream completed successfully`.
+  - Known non-blocking log item: `CRITICAL WARNING: [IP_Flow 19-4309] IP 'blk_mem_gen_0' is locked...`; the UART build still generated the bitstream.
+  - Routing still has known setup timing violations (`WNS=-3.330ns`, `TNS=-3948.764ns`, hold clean with `WHS=0.059ns`). Treat this as a bring-up/demo bit, not final timing-clean release.
+- Verification commands used for the variant:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_button_sequence.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_waveform_modes.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_register_debug_wiring.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_uart_control_wiring.ps1`
+  - `python -m py_compile D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py`
+- Tomorrow's recommended order:
+  1. Power board and FMC card, connect JTAG and UART.
+  2. Reprogram the known-good button bit and confirm OUT1 still responds to frequency/amplitude/waveform controls.
+  3. Program `top_awg_uart.bit`.
+  4. Wait 12-15 seconds.
+  5. Run the host `status` command and confirm `ID=0x41574731`.
+  6. Send a 50 MHz sine preset, then vary amplitude/frequency from the host.
+  7. If UART does not respond, first confirm COM port and that the UART bit, not the button bit, is loaded.

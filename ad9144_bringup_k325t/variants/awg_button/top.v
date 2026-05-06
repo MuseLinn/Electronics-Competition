@@ -71,6 +71,11 @@ module top (
         input key0,
         input key1,
         output [1:0] led
+`ifdef AWG_UART_CONTROL
+        ,
+        input uart_rxd,
+        output uart_txd
+`endif
         //output  trig_io_free
       );
    wire sys_clk, sys_clk_bufg;
@@ -355,14 +360,43 @@ wire signed [15:0] awg_reg_offset;
 wire [1:0]  awg_reg_wave_mode;
 wire        awg_reg_update_toggle;
 wire [31:0] awg_reg_read_data;
+wire        awg_cfg_wr_en;
+wire        awg_cfg_rd_en;
+wire [7:0]  awg_cfg_addr;
+wire [31:0] awg_cfg_wdata;
+
+`ifdef AWG_UART_CONTROL
+wire awg_uart_activity;
+
+ad9144_uart_reg_bridge #(
+    .CLK_HZ(250000000),
+    .BAUD(115200)
+) u_ad9144_uart_reg_bridge (
+    .clk             (w_tx_core_clk),
+    .rst_n           (w_rst_n),
+    .uart_rxd        (uart_rxd),
+    .uart_txd        (uart_txd),
+    .cfg_wr_en       (awg_cfg_wr_en),
+    .cfg_rd_en       (awg_cfg_rd_en),
+    .cfg_addr        (awg_cfg_addr),
+    .cfg_wdata       (awg_cfg_wdata),
+    .cfg_rdata       (awg_reg_read_data),
+    .activity_toggle (awg_uart_activity)
+);
+`else
+assign awg_cfg_wr_en = 1'b0;
+assign awg_cfg_rd_en = 1'b0;
+assign awg_cfg_addr  = 8'd0;
+assign awg_cfg_wdata = 32'd0;
+`endif
 
 ad9144_awg_reg_bank u_ad9144_awg_reg_bank (
     .clk              (w_tx_core_clk),
     .rst_n            (w_rst_n),
-    .cfg_wr_en        (1'b0),
-    .cfg_addr         (8'd0),
-    .cfg_wdata        (32'd0),
-    .cfg_rd_en        (1'b0),
+    .cfg_wr_en        (awg_cfg_wr_en),
+    .cfg_addr         (awg_cfg_addr),
+    .cfg_wdata        (awg_cfg_wdata),
+    .cfg_rd_en        (awg_cfg_rd_en),
     .cfg_rdata        (awg_reg_read_data),
     .output_enable    (awg_reg_output_enable),
     .use_reg_control  (awg_reg_use_control),
@@ -530,7 +564,11 @@ always@ (posedge w_tx_core_clk or negedge w_rst_n) begin
     end
 end
 
+`ifdef AWG_UART_CONTROL
+assign led = awg_reg_use_control ? {awg_reg_output_enable, awg_uart_activity} : ui_mode;
+`else
 assign led = ui_mode;
+`endif
 
 jesd204_phy_0 jesd204_phy_txrx_inst (
   .cpll_refclk(w_qpll_refclk),                          // input wire cpll_refclk
