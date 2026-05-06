@@ -30,6 +30,9 @@ foreach src [glob "$vendor_src/sources_1/new/*.v"] {
         add_files -fileset sources_1 $src
     }
 }
+foreach src [glob "$proj_root/rtl/awg/*.v"] {
+    add_files -fileset sources_1 $src
+}
 add_files -fileset sources_1 $variant_top
 add_files -fileset constrs_1 "$proj_root/constraints/top_k325t_fmc.xdc"
 add_files -fileset constrs_1 "$proj_root/constraints/awg_button_k325t.xdc"

@@ -1478,3 +1478,22 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Frequency choices are intentionally conservative for this ROM demo: about 10, 20, 30, 40, 50, 80, and 100 MHz. Higher final AWG frequencies should be implemented with the real NCO/waveform path rather than this 100-point ROM demo.
 - Verification:
   - `D:\FPGA\ad9144_bringup_k325t\scripts\check_awg_button_sequence.ps1` validates every frequency selection has constant inter-sample phase spacing across JESD beat boundaries.
+
+## 17. AD9144 AWG Button DDS4 Addendum (2026-05-06)
+
+- Current button variant no longer uses the 100-point ROM as the active waveform source.
+- New RTL:
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_dds4.v`
+  - `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sample_packer.v`
+- Data source:
+  - 4096-point sine table copied to `D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sine_4096.hex`
+  - `phase_inc_from_sel()` now maps the button-selected frequency directly to a 48-bit DDS increment.
+- Integration:
+  - `top.v` instantiates `ad9144_awg_dds4` and `ad9144_sample_packer`.
+  - `create_awg_button_project.tcl` must add `rtl/awg/*.v` to `sources_1`.
+  - `check_awg_button_sequence.ps1` now checks DDS increment constants, phase offsets, and the sample packer byte order.
+- Keep the old ROM artifact fix addendum below as the history of the 100-point demo path. The DDS4 path is the current working direction for better frequency continuity and less visible phase-slip.
+- Build and program result:
+  - Bitstream: `D:\FPGA\ad9144_bringup_k325t\vivado_awg_button\top_awg_button.bit`
+  - Programming completed successfully after repowering the board; Vivado reported `End of startup status: HIGH`.
+  - The remaining probe-file mismatch warning is only about ILA/VIO debug probe association and does not block the programmed design from running.

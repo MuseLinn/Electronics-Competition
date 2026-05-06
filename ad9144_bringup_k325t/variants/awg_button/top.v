@@ -276,32 +276,11 @@ jesd_axi_read jesd_axi_read_for_rx(
     .clk_in1_p(glblclk_p),    // input clk_in1_p
     .clk_in1_n(glblclk_n));    // input clk_in1_n
 
-reg[6:0] r_dds_addra_num0, r_dds_addra_num1, r_dds_addra_num2, r_dds_addra_num3;
-wire[15:0] w_douta_num0, w_douta_num1, w_douta_num2, w_douta_num3;
-reg signed [15:0] r_scaled_num0, r_scaled_num1, r_scaled_num2, r_scaled_num3;
+wire signed [15:0] awg_sample0, awg_sample1, awg_sample2, awg_sample3;
+wire [11:0] awg_phase_addr0, awg_phase_addr1, awg_phase_addr2, awg_phase_addr3;
+wire awg_sample_valid;
 // 例化4个相同的ROM，通过地址错位读取，合并成一路信号给JESD204b的数据端口
 // 4路DAC将输出相同的波形信号
-blk_mem_gen_0 blk_mem_gen_num0 (
-  .clka(w_tx_core_clk),    // input wire clka
-  .addra(r_dds_addra_num0),  // input wire [5 : 0] addra
-  .douta(w_douta_num0)  // output wire [15 : 0] douta
-);
-blk_mem_gen_0 blk_mem_gen_num1 (
-  .clka(w_tx_core_clk),    // input wire clka
-  .addra(r_dds_addra_num1),  // input wire [5 : 0] addra
-  .douta(w_douta_num1)  // output wire [15 : 0] douta
-);    
-blk_mem_gen_0 blk_mem_gen_num2 (
-  .clka(w_tx_core_clk),    // input wire clka
-  .addra(r_dds_addra_num2),  // input wire [5 : 0] addra
-  .douta(w_douta_num2)  // output wire [15 : 0] douta
-);   
-blk_mem_gen_0 blk_mem_gen_num3 (
-  .clka(w_tx_core_clk),    // input wire clka
-  .addra(r_dds_addra_num3),  // input wire [5 : 0] addra
-  .douta(w_douta_num3)  // output wire [15 : 0] douta
-);   
-reg[6:0] addr_cnt;
 reg key0_d, key0_dd, key0_stable, key0_stable_prev;
 reg key1_d, key1_dd, key1_stable, key1_stable_prev;
 reg[31:0] key0_cnt, key1_cnt, chord_cnt;
@@ -316,31 +295,18 @@ wire key0_release = !key0_stable_prev && key0_stable;
 wire key1_release = !key1_stable_prev && key1_stable;
 wire both_down    = !key0_stable && !key1_stable;
 
-function [6:0] add_mod100;
-    input [6:0] a;
-    input [6:0] b;
-    reg [7:0] sum;
-    begin
-        sum = a + b;
-        if(sum >= 8'd100)
-            add_mod100 = sum - 8'd100;
-        else
-            add_mod100 = sum[6:0];
-    end
-endfunction
-
-function [6:0] sample_step_from_sel;
+function [47:0] phase_inc_from_sel;
     input [2:0] sel;
     begin
-        case(sel)
-            3'd0: sample_step_from_sel = 7'd1;   // about 10 MHz
-            3'd1: sample_step_from_sel = 7'd2;   // about 20 MHz
-            3'd2: sample_step_from_sel = 7'd3;   // about 30 MHz
-            3'd3: sample_step_from_sel = 7'd4;   // about 40 MHz
-            3'd4: sample_step_from_sel = 7'd5;   // about 50 MHz
-            3'd5: sample_step_from_sel = 7'd8;   // about 80 MHz
-            3'd6: sample_step_from_sel = 7'd10;  // about 100 MHz
-            default: sample_step_from_sel = 7'd5;
+        case (sel)
+            3'd0: phase_inc_from_sel = 48'h028F5C28F5C3;
+            3'd1: phase_inc_from_sel = 48'h051EB851EB85;
+            3'd2: phase_inc_from_sel = 48'h07AE147AE148;
+            3'd3: phase_inc_from_sel = 48'h0A3D70A3D70A;
+            3'd4: phase_inc_from_sel = 48'h0CCCCCCCCCCD;
+            3'd5: phase_inc_from_sel = 48'h147AE147AE14;
+            3'd6: phase_inc_from_sel = 48'h19999999999A;
+            default: phase_inc_from_sel = 48'h0CCCCCCCCCCD;
         endcase
     end
 endfunction
@@ -348,7 +314,7 @@ endfunction
 function [15:0] amp_from_sel;
     input [2:0] sel;
     begin
-        case(sel)
+        case (sel)
             3'd0: amp_from_sel = 16'h1000;
             3'd1: amp_from_sel = 16'h2000;
             3'd2: amp_from_sel = 16'h4000;
@@ -359,63 +325,49 @@ function [15:0] amp_from_sel;
     end
 endfunction
 
-function [6:0] phase_from_sel;
+function [47:0] phase_offset_from_sel;
     input [2:0] sel;
     begin
-        case(sel)
-            3'd0: phase_from_sel = 7'd0;
-            3'd1: phase_from_sel = 7'd10;
-            3'd2: phase_from_sel = 7'd20;
-            3'd3: phase_from_sel = 7'd30;
-            3'd4: phase_from_sel = 7'd40;
-            default: phase_from_sel = 7'd0;
+        case (sel)
+            3'd0: phase_offset_from_sel = 48'h000000000000;
+            3'd1: phase_offset_from_sel = 48'h200000000000;
+            3'd2: phase_offset_from_sel = 48'h400000000000;
+            3'd3: phase_offset_from_sel = 48'h800000000000;
+            3'd4: phase_offset_from_sel = 48'hC00000000000;
+            default: phase_offset_from_sel = 48'h000000000000;
         endcase
     end
 endfunction
 
-function signed [15:0] scale_sample;
-    input signed [15:0] sample;
-    input [15:0] amp_q15;
-    reg signed [31:0] product;
-    begin
-        product = sample * $signed({1'b0, amp_q15});
-        scale_sample = product >>> 15;
-    end
-endfunction
+wire [47:0] phase_inc    = phase_inc_from_sel(freq_sel);
+wire [15:0] amp_q15      = amp_from_sel(amp_sel);
+wire [47:0] phase_offset = phase_offset_from_sel(phase_sel);
 
-wire [6:0] sample_step = sample_step_from_sel(freq_sel);
-wire [6:0] beat_step   = add_mod100(add_mod100(sample_step, sample_step),
-                                    add_mod100(sample_step, sample_step));
-wire [15:0] amp_q15    = amp_from_sel(amp_sel);
-wire [6:0] phase_base  = phase_from_sel(phase_sel);
-wire [6:0] addr_phase0 = add_mod100(addr_cnt, phase_base);
-wire [6:0] addr_phase1 = add_mod100(addr_phase0, sample_step);
-wire [6:0] addr_phase2 = add_mod100(addr_phase1, sample_step);
-wire [6:0] addr_phase3 = add_mod100(addr_phase2, sample_step);
+ad9144_awg_dds4 u_ad9144_awg_dds4 (
+    .clk           (w_tx_core_clk),
+    .rst_n         (w_rst_n),
+    .phase_inc     (phase_inc),
+    .phase_offset  (phase_offset),
+    .amplitude_q15 (amp_q15),
+    .offset        (16'sd0),
+    .sample0       (awg_sample0),
+    .sample1       (awg_sample1),
+    .sample2       (awg_sample2),
+    .sample3       (awg_sample3),
+    .phase_addr0   (awg_phase_addr0),
+    .phase_addr1   (awg_phase_addr1),
+    .phase_addr2   (awg_phase_addr2),
+    .phase_addr3   (awg_phase_addr3),
+    .sample_valid  (awg_sample_valid)
+);
 
-always@ (posedge w_tx_core_clk or negedge w_rst_n) begin
-    if(~w_rst_n) begin
-        addr_cnt          <= 7'd0;
-        r_dds_addra_num0  <= 7'd0;
-        r_dds_addra_num1  <= 7'd5;
-        r_dds_addra_num2  <= 7'd10;
-        r_dds_addra_num3  <= 7'd15;
-        r_scaled_num0     <= 16'sd0;
-        r_scaled_num1     <= 16'sd0;
-        r_scaled_num2     <= 16'sd0;
-        r_scaled_num3     <= 16'sd0;
-    end else begin
-        addr_cnt          <= add_mod100(addr_cnt, beat_step);
-        r_dds_addra_num0  <= addr_phase0;
-        r_dds_addra_num1  <= addr_phase1;
-        r_dds_addra_num2  <= addr_phase2;
-        r_dds_addra_num3  <= addr_phase3;
-        r_scaled_num0     <= scale_sample($signed(w_douta_num0), amp_q15);
-        r_scaled_num1     <= scale_sample($signed(w_douta_num1), amp_q15);
-        r_scaled_num2     <= scale_sample($signed(w_douta_num2), amp_q15);
-        r_scaled_num3     <= scale_sample($signed(w_douta_num3), amp_q15);
-    end
-end
+ad9144_sample_packer u_ad9144_sample_packer (
+    .sample0 (awg_sample0),
+    .sample1 (awg_sample1),
+    .sample2 (awg_sample2),
+    .sample3 (awg_sample3),
+    .tx_tdata(w_tx_tdata)
+);
 
 always@ (posedge w_tx_core_clk or negedge w_rst_n) begin
     if(~w_rst_n) begin
@@ -500,11 +452,6 @@ end
 
 assign led = ui_mode;
 
-assign w_tx_tdata = {r_scaled_num3[7:0],  r_scaled_num2[7:0],  r_scaled_num1[7:0],  r_scaled_num0[7:0],
-                     r_scaled_num3[15:8], r_scaled_num2[15:8], r_scaled_num1[15:8], r_scaled_num0[15:8],
-                     r_scaled_num3[7:0],  r_scaled_num2[7:0],  r_scaled_num1[7:0],  r_scaled_num0[7:0],
-                     r_scaled_num3[15:8], r_scaled_num2[15:8], r_scaled_num1[15:8], r_scaled_num0[15:8]};
-                                     
 jesd204_phy_0 jesd204_phy_txrx_inst (
   .cpll_refclk(w_qpll_refclk),                          // input wire cpll_refclk
   .qpll_refclk(w_qpll_refclk),                          // input wire qpll_refclk
@@ -884,10 +831,10 @@ my_ila_jesd my_ila_jesd_tx (
 	.probe9({9'b0}), // input wire [7:0]  probe9 
 	.probe10(w_tx_tdata[63:0]), // input wire [63:0]  probe10 
 	.probe11(w_tx_tdata[127:64]), // input wire [63:0]  probe11 
-	.probe12({1'b0,r_dds_addra_num0}), // input wire [7:0]  probe12 
-	.probe13({1'b0,r_dds_addra_num1}), // input wire [7:0]  probe13 
-	.probe14({1'b0,r_dds_addra_num2}), // input wire [7:0]  probe14 
-	.probe15({1'b0,r_dds_addra_num3}) // input wire [7:0]  probe15	
+	.probe12({4'b0,awg_phase_addr0[7:0]}), // input wire [7:0]  probe12 
+	.probe13({4'b0,awg_phase_addr1[7:0]}), // input wire [7:0]  probe13 
+	.probe14({4'b0,awg_phase_addr2[7:0]}), // input wire [7:0]  probe14 
+	.probe15({4'b0,awg_phase_addr3[7:0]}) // input wire [7:0]  probe15	
 	
 );
 

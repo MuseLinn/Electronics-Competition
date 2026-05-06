@@ -1,60 +1,92 @@
 $ErrorActionPreference = 'Stop'
 
 $topPath = 'D:\FPGA\ad9144_bringup_k325t\variants\awg_button\top.v'
-$text = Get-Content -LiteralPath $topPath -Raw
+$ddsPath = 'D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_dds4.v'
+$packerPath = 'D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sample_packer.v'
+$topText = Get-Content -LiteralPath $topPath -Raw
+$ddsText = Get-Content -LiteralPath $ddsPath -Raw
+$packerText = Get-Content -LiteralPath $packerPath -Raw
 
-$matches = [regex]::Matches($text, "3'd(?<sel>\d+):\s+sample_step_from_sel\s+=\s+7'd(?<step>\d+);")
-if ($matches.Count -eq 0) {
-    throw "No sample_step_from_sel entries found in $topPath"
+$phaseMatches = [regex]::Matches($topText, "3'd(?<sel>\d+):\s+phase_inc_from_sel\s+=\s+48'h(?<hex>[0-9A-Fa-f]+);")
+if ($phaseMatches.Count -eq 0) {
+    throw "No phase_inc_from_sel entries found in $topPath"
 }
 
-$steps = @{}
-foreach ($m in $matches) {
-    $steps[[int]$m.Groups['sel'].Value] = [int]$m.Groups['step'].Value
+$expectedPhaseInc = @{
+    0 = '028F5C28F5C3'
+    1 = '051EB851EB85'
+    2 = '07AE147AE148'
+    3 = '0A3D70A3D70A'
+    4 = '0CCCCCCCCCCD'
+    5 = '147AE147AE14'
+    6 = '19999999999A'
 }
 
 foreach ($sel in 0..6) {
-    if (-not $steps.ContainsKey($sel)) {
-        throw "Missing frequency selection $sel in sample_step_from_sel"
+    if ($topText -notmatch "3'd$($sel):\s+phase_inc_from_sel\s+=\s+48'h") {
+        throw "Missing frequency selection $sel in phase_inc_from_sel"
     }
 }
 
-if ($text -notmatch "freq_sel\s+<=\s+3'd4;") {
+foreach ($entry in $expectedPhaseInc.GetEnumerator()) {
+    $pattern = "3'd$($entry.Key):\s+phase_inc_from_sel\s+=\s+48'h(?<hex>[0-9A-Fa-f]+);"
+    $m = [regex]::Match($topText, $pattern)
+    if (-not $m.Success) {
+        throw "Missing phase increment entry for selection $($entry.Key)"
+    }
+    if ($m.Groups['hex'].Value.ToUpperInvariant() -ne $entry.Value) {
+        throw "Selection $($entry.Key) maps to $($m.Groups['hex'].Value), expected $($entry.Value)"
+    }
+}
+
+$expectedPhaseOffset = @{
+    0 = '000000000000'
+    1 = '200000000000'
+    2 = '400000000000'
+    3 = '800000000000'
+    4 = 'C00000000000'
+}
+
+foreach ($entry in $expectedPhaseOffset.GetEnumerator()) {
+    $pattern = "3'd$($entry.Key):\s+phase_offset_from_sel\s+=\s+48'h(?<hex>[0-9A-Fa-f]+);"
+    $m = [regex]::Match($topText, $pattern)
+    if (-not $m.Success) {
+        throw "Missing phase offset entry for selection $($entry.Key)"
+    }
+    if ($m.Groups['hex'].Value.ToUpperInvariant() -ne $entry.Value) {
+        throw "Selection $($entry.Key) maps to $($m.Groups['hex'].Value), expected $($entry.Value)"
+    }
+}
+
+if ($topText -notmatch "freq_sel\s+<=\s+3'd4;") {
     throw "Default freq_sel is not 3'd4; default output should stay near the known-good 50 MHz setting"
 }
 
-function Add-Mod100([int]$a, [int]$b) {
-    return ($a + $b) % 100
+if ($topText -notmatch "phase_sel\s+<=\s+3'd0;") {
+    throw "Default phase_sel is not 3'd0"
 }
 
-foreach ($sel in 0..6) {
-    $step = $steps[$sel]
-    $addr = 0
-    $sequence = New-Object System.Collections.Generic.List[int]
-
-    foreach ($beat in 0..7) {
-        $a0 = $addr
-        $a1 = Add-Mod100 $a0 $step
-        $a2 = Add-Mod100 $a1 $step
-        $a3 = Add-Mod100 $a2 $step
-        $sequence.Add($a0)
-        $sequence.Add($a1)
-        $sequence.Add($a2)
-        $sequence.Add($a3)
-        $addr = Add-Mod100 $addr (4 * $step)
-    }
-
-    for ($i = 0; $i -lt ($sequence.Count - 1); $i++) {
-        $delta = ($sequence[$i + 1] - $sequence[$i] + 100) % 100
-        if ($delta -ne $step) {
-            throw "Selection $sel has discontinuous sample spacing at index $i`: $($sequence[$i]) -> $($sequence[$i + 1]), expected step $step"
-        }
+foreach ($needle in @(
+    'ad9144_awg_dds4 u_ad9144_awg_dds4',
+    'ad9144_sample_packer u_ad9144_sample_packer',
+    '.phase_inc     (phase_inc)',
+    '.phase_offset  (phase_offset)',
+    '.amplitude_q15 (amp_q15)',
+    '.sample0       (awg_sample0)',
+    '.sample3       (awg_sample3)',
+    '.tx_tdata(w_tx_tdata)'
+)) {
+    if ($topText -notmatch [regex]::Escape($needle)) {
+        throw "Missing expected wiring: $needle"
     }
 }
 
-$defaultStep = $steps[4]
-if ($defaultStep -ne 5) {
-    throw "Default frequency selection 4 maps to step $defaultStep, expected step 5 for about 50 MHz"
+if ($ddsText -notmatch 'parameter INIT_FILE\s*=\s*"D:/FPGA/ad9144_bringup_k325t/rtl/awg/ad9144_sine_4096.hex"') {
+    throw "DDS module is not pointing at the expected sine table"
 }
 
-Write-Host "AWG button ROM sequence check PASS"
+if ($packerText -notmatch '(?s)sample3\[7:0\].*sample2\[7:0\].*sample1\[7:0\].*sample0\[7:0\].*sample3\[15:8\].*sample2\[15:8\].*sample1\[15:8\].*sample0\[15:8\]') {
+    throw "Sample packer bit order does not match the AD9144 vendor format"
+}
+
+Write-Host "AWG button DDS4 wiring check PASS"
