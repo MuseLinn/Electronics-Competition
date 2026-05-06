@@ -29,6 +29,8 @@ sim/work/*.vcd
 # Build logs
 build_*.log
 rebuild_*.log
+artifacts/
+measurements/
 
 # Python cache
 __pycache__/

@@ -7,6 +7,7 @@ set proj_dir "D:/awg_fpga/vivado"
 set proj_name "awg_k325t"
 set ip_dir [file join $proj_dir "$proj_name.srcs" sources_1 ip]
 set ila_name "ila_awg_debug"
+set artifact_dir "D:/awg_fpga/artifacts/debug"
 
 open_project [file join $proj_dir "$proj_name.xpr"]
 
@@ -89,18 +90,26 @@ set bit_file [file join $impl_dir "awg_dds_led_top.bit"]
 set ltx_file [file join $impl_dir "awg_dds_led_top.ltx"]
 set debug_bit [file join $impl_dir "awg_dds_led_top_debug.bit"]
 set debug_ltx [file join $impl_dir "awg_dds_led_top_debug.ltx"]
+set artifact_bit [file join $artifact_dir "awg_dds_led_top_debug.bit"]
+set artifact_ltx [file join $artifact_dir "awg_dds_led_top_debug.ltx"]
+
+file mkdir $artifact_dir
 
 if {[file exists $bit_file]} {
     file copy -force $bit_file $debug_bit
+    file copy -force $bit_file $artifact_bit
 }
 if {[file exists $ltx_file]} {
     file copy -force $ltx_file $debug_ltx
+    file copy -force $ltx_file $artifact_ltx
 }
 
 puts "========================================"
 puts "SUCCESS: Debug bitstream generated"
 puts "  debug bit: $debug_bit"
 puts "  debug ltx: $debug_ltx"
+puts "  stable debug bit: $artifact_bit"
+puts "  stable debug ltx: $artifact_ltx"
 puts "========================================"
 
 set_property verilog_define {} [get_filesets sources_1]

@@ -1,7 +1,7 @@
 # Program AWG debug bit and export ILA capture CSV files.
 
-set bit_file "D:/awg_fpga/vivado/awg_k325t.runs/impl_1/awg_dds_led_top_debug.bit"
-set ltx_file "D:/awg_fpga/vivado/awg_k325t.runs/impl_1/awg_dds_led_top_debug.ltx"
+set bit_file "D:/awg_fpga/artifacts/debug/awg_dds_led_top_debug.bit"
+set ltx_file "D:/awg_fpga/artifacts/debug/awg_dds_led_top_debug.ltx"
 set out_dir  "D:/awg_fpga/measurements/ila"
 
 proc cleanup_and_exit {code message} {
@@ -77,12 +77,15 @@ set dev [lindex $devs 0]
 current_hw_device $dev
 puts "CURRENT_DEVICE=$dev"
 puts "PART=[get_property PART $dev]"
+set_property BSCAN_SWITCH_USER_MASK 1 $dev
 
 set_property PROGRAM.FILE $bit_file $dev
 if {[file exists $ltx_file]} {
     set_property PROBES.FILE $ltx_file $dev
 }
 program_hw_devices $dev
+after 2000
+set_property BSCAN_SWITCH_USER_MASK 1 $dev
 refresh_hw_device -update_hw_probes true $dev
 
 set ilas [get_hw_ilas]
