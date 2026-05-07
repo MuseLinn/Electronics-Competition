@@ -45,6 +45,9 @@ Assert-FileContains $bridge 'R aa' "UART bridge does not document read command f
 Assert-FileContains $bridge 'cfg_wr_en\s*<=\s*1''b1' "UART bridge never emits cfg_wr_en."
 Assert-FileContains $bridge 'cfg_rd_en\s*<=\s*1''b1' "UART bridge never emits cfg_rd_en."
 Assert-FileContains $bridge 'SEND_DATA' "UART bridge does not implement readback responses."
+Assert-FileContains $bridge 'ST_RD_CAPTURE' "UART bridge does not wait long enough before latching synchronous cfg_rdata."
+Assert-FileContains $bridge 'ST_SEND_BUSY' "UART bridge does not wait for uart_tx to accept each response byte."
+Assert-FileContains $bridge 'ST_SEND_IDLE' "UART bridge does not wait for uart_tx to finish each response byte."
 
 Assert-FileContains $uartRx 'module\s+uart_rx' "Missing uart_rx module."
 Assert-FileContains $uartRx 'CLKS_PER_BIT\s*=\s*CLK_HZ\s*/\s*BAUD' "uart_rx does not derive CLKS_PER_BIT from parameters."

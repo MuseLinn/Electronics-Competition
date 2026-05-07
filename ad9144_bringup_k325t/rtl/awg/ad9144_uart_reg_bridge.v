@@ -36,6 +36,9 @@ localparam [4:0] ST_RD_PULSE     = 5'd6;
 localparam [4:0] ST_RD_WAIT      = 5'd7;
 localparam [4:0] ST_DRAIN_ERR    = 5'd8;
 localparam [4:0] ST_SEND         = 5'd9;
+localparam [4:0] ST_SEND_BUSY    = 5'd10;
+localparam [4:0] ST_SEND_IDLE    = 5'd11;
+localparam [4:0] ST_RD_CAPTURE   = 5'd12;
 
 localparam [1:0] SEND_OK   = 2'd0;
 localparam [1:0] SEND_ERR  = 2'd1;
@@ -328,6 +331,10 @@ always @(posedge clk or negedge rst_n) begin
             end
 
             ST_RD_WAIT: begin
+                state <= ST_RD_CAPTURE;
+            end
+
+            ST_RD_CAPTURE: begin
                 read_latched <= cfg_rdata;
                 start_send(SEND_DATA);
             end
@@ -343,10 +350,21 @@ always @(posedge clk or negedge rst_n) begin
                         tx_data <= send_byte(send_type, send_index, read_latched);
                         tx_start <= 1'b1;
                         send_index <= send_index + 1'b1;
+                        state <= ST_SEND_BUSY;
                     end else begin
                         state <= ST_IDLE;
                     end
                 end
+            end
+
+            ST_SEND_BUSY: begin
+                if (tx_busy)
+                    state <= ST_SEND_IDLE;
+            end
+
+            ST_SEND_IDLE: begin
+                if (!tx_busy)
+                    state <= ST_SEND;
             end
 
             default: begin

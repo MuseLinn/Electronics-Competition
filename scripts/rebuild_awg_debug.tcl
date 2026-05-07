@@ -9,6 +9,8 @@ set ip_dir [file join $proj_dir "$proj_name.srcs" sources_1 ip]
 set ila_name "ila_awg_debug"
 set artifact_dir "D:/awg_fpga/artifacts/debug"
 
+source D:/FPGA/scripts/vivado_threads.tcl
+
 open_project [file join $proj_dir "$proj_name.xpr"]
 
 proc ensure_source {path} {
@@ -66,7 +68,7 @@ puts "========================================"
 puts "Starting debug synthesis..."
 puts "========================================"
 reset_run synth_1
-launch_runs synth_1 -jobs 4
+launch_runs synth_1 -jobs $::AWG_VIVADO_JOBS
 wait_on_run synth_1
 
 set synth_status [get_property STATUS [get_runs synth_1]]
@@ -82,7 +84,7 @@ puts "========================================"
 puts "Starting debug implementation + bitstream..."
 puts "========================================"
 reset_run impl_1
-launch_runs impl_1 -to_step write_bitstream -jobs 4
+launch_runs impl_1 -to_step write_bitstream -jobs $::AWG_VIVADO_JOBS
 wait_on_run impl_1
 
 set impl_status [get_property STATUS [get_runs impl_1]]

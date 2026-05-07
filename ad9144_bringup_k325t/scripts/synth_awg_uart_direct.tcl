@@ -1,5 +1,6 @@
 # Recreate the AWG UART project and run synthesis inside this Vivado process.
 
+source D:/FPGA/ad9144_bringup_k325t/scripts/vivado_threads.tcl
 source D:/FPGA/ad9144_bringup_k325t/scripts/create_awg_uart_project.tcl
 
 set ips [get_ips -quiet *]

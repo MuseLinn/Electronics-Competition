@@ -1673,3 +1673,55 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Vivado saw 3 ILA cores and 1 VIO core in the programmed design; missing probes warning only affects debug naming/viewing.
   - Windows did not expose any `COM` port (`Win32_SerialPort` and `[System.IO.Ports.SerialPort]::GetPortNames()` returned empty), so `awg_uart_control.py --port COMx status` could not be run yet.
   - Next physical action: connect or enable a real USB-UART path to K325T pins `T23/T22` before judging UART register control. Until then, the UART bit should still behave like the button demo because register control defaults off.
+- UART hardware validation after CH340 was connected on 2026-05-07:
+  - Windows detected `USB-SERIAL CH340 (COM7)`.
+  - Board was power-cycled, so `top_awg_uart.bit` was reprogrammed over JTAG.
+  - First UART read returned truncated responses such as `D4543\r` and `O\r`.
+  - Root cause in `ad9144_uart_reg_bridge.v`:
+    - `ST_SEND` advanced to the next response byte before `uart_tx` had accepted the previous byte, so every other byte was skipped.
+    - readback latched `cfg_rdata` one clock too early, so read responses were one command behind.
+  - Fix:
+    - Added `ST_SEND_BUSY` and `ST_SEND_IDLE` to wait for each UART byte to be accepted and completed.
+    - Added `ST_RD_CAPTURE` to wait one extra clock after synchronous register read.
+    - Added static checks in `check_awg_uart_control_wiring.ps1` for those states.
+  - Rebuilt bitstream with `build_awg_uart_direct.tcl` and reprogrammed successfully.
+  - Raw UART verification:
+    - `R 00` -> `D 41574731`
+    - `R 04` -> `D 20260507`
+    - `W 08 00000003` -> `OK`
+    - `R 08` -> `D 00000003`
+  - Host tool verification:
+    - `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM7 status`
+    - `ID=0x41574731`, `VERSION=0x20260507`, `CONTROL=0x00000001`, `PHASE_INC=0x0CCCCCCCCCCD`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`.
+    - `preset --frequency 50000000 --amplitude 0x6000 --wave sine` enabled register control.
+    - Final readback after preset: `CONTROL=0x00000003`, `STATUS=0x0000006F`, `PHASE_INC=0x0CCCCCCCCCCD`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`.
+  - Current hardware state after validation: FPGA is programmed with the fixed UART bit and register control is enabled for 50 MHz sine, amplitude `0x6000`.
+  - User confirmed on the oscilloscope that OUT1 shows a normal 50 MHz sine wave with this UART-controlled configuration.
+
+## 22. Vivado Thread Settings and UART Panel (2026-05-07)
+
+- Machine checked on 2026-05-07:
+  - CPU: 11th Gen Intel Core i7-11800H
+  - 8 physical cores, 16 logical processors.
+- Vivado scripts now use a shared conservative default of 8 threads:
+  - `D:\FPGA\scripts\vivado_threads.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\vivado_threads.tcl`
+  - Verified by batch sourcing both scripts; both printed `AWG_VIVADO_MAX_THREADS=8`, `AWG_VIVADO_JOBS=8`, and `VIVADO_GENERAL_MAXTHREADS=8`.
+- Override when needed from PowerShell:
+  - `$env:AWG_VIVADO_MAX_THREADS = "4"`
+  - Then run the usual Vivado build command.
+- The shared thread script sets:
+  - `set_param general.maxThreads $::AWG_VIVADO_THREADS`
+  - `::AWG_VIVADO_JOBS` for `launch_runs -jobs`.
+- Updated scripts:
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\synth_awg_uart_direct.tcl`
+  - `D:\FPGA\ad9144_bringup_k325t\scripts\synth_awg_button_direct.tcl`
+  - `D:\FPGA\scripts\rebuild_awg_base.tcl`
+  - `D:\FPGA\scripts\rebuild_awg_debug.tcl`
+  - `D:\FPGA\build_key_freq.tcl`
+- First UART GUI panel:
+  - `D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_panel.py`
+  - Doc: `D:\FPGA\ad9144_bringup_k325t\docs\awg_uart_panel.md`
+  - Launch: `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_panel.py`
+  - It can refresh COM ports, read status, apply frequency/amplitude/phase/waveform presets, disable output, and return to button control.
+  - Verification: Python compile passes, `--smoke` prints `AWG_UART_PANEL_IMPORT_OK`, port enumeration returns `COM7`, and `awg_uart_control.py --port COM7 status` still reads `ID=0x41574731`.

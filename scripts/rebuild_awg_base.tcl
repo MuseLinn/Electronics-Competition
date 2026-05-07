@@ -4,6 +4,8 @@
 set proj_dir "D:/awg_fpga/vivado"
 set proj_name "awg_k325t"
 
+source D:/FPGA/scripts/vivado_threads.tcl
+
 # Open project
 open_project [file join $proj_dir "$proj_name.xpr"]
 
@@ -27,7 +29,7 @@ puts "========================================"
 puts "Starting Synthesis..."
 puts "========================================"
 reset_run synth_1
-launch_runs synth_1 -jobs 4
+launch_runs synth_1 -jobs $::AWG_VIVADO_JOBS
 wait_on_run synth_1
 
 set synth_status [get_property STATUS [get_runs synth_1]]
@@ -45,7 +47,7 @@ puts "========================================"
 puts "Starting Implementation + Bitstream..."
 puts "========================================"
 reset_run impl_1
-launch_runs impl_1 -to_step write_bitstream -jobs 4
+launch_runs impl_1 -to_step write_bitstream -jobs $::AWG_VIVADO_JOBS
 wait_on_run impl_1
 
 set impl_status [get_property STATUS [get_runs impl_1]]
