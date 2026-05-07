@@ -1725,3 +1725,15 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - Launch: `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_panel.py`
   - It can refresh COM ports, read status, apply frequency/amplitude/phase/waveform presets, disable output, and return to button control.
   - Verification: Python compile passes, `--smoke` prints `AWG_UART_PANEL_IMPORT_OK`, port enumeration returns `COM7`, and `awg_uart_control.py --port COM7 status` still reads `ID=0x41574731`.
+- UART sweep/logger tool:
+  - `D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_sweep.py`
+  - Plan: `D:\FPGA\docs\superpowers\plans\2026-05-07-awg-uart-sweep-logger.md`
+  - Purpose: generate repeatable UART register-control sweep CSVs for later oscilloscope correlation.
+  - Profiles: `quick`, `amplitude`, `wave`, `full`.
+  - Dry-run command verified:
+    `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_sweep.py --dry-run --out C:\tmp\awg_sweep_dry.csv`
+  - Live quick sweep verified on `COM7`:
+    `python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_sweep.py --port COM7 --profile quick --settle 0.05 --out D:\FPGA\ad9144_bringup_k325t\measurements\uart_sweeps\quick_latest.csv`
+  - CSV contained 10 MHz, 50 MHz, and 100 MHz sine rows with matching readback phase increments.
+  - The tool restores 50 MHz sine, amplitude `0x6000` by default after a live sweep.
+  - Final status after sweep: `ID=0x41574731`, `CONTROL=0x00000003`, `PHASE_INC=0x0CCCCCCCCCCD`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`.

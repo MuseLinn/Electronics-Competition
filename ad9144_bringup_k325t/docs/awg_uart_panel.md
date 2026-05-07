@@ -35,3 +35,20 @@ WAVE_MODE=0
 ```
 
 The user confirmed the oscilloscope shows a normal 50 MHz sine wave on AD9144 OUT1.
+
+## Sweep Logger
+
+Use the sweep logger to prepare repeatable oscilloscope test points and CSV records:
+
+```powershell
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_sweep.py --port COM7 --profile quick --out D:\FPGA\ad9144_bringup_k325t\measurements\uart_sweeps\quick_latest.csv
+```
+
+Profiles:
+
+- `quick`: 10 MHz, 50 MHz, 100 MHz sine.
+- `amplitude`: 50 MHz sine at several amplitudes.
+- `wave`: 50 MHz sine/square/triangle/saw.
+- `full`: combined frequency, amplitude, and waveform points.
+
+The script restores 50 MHz sine at amplitude `0x6000` by default after a live sweep.
