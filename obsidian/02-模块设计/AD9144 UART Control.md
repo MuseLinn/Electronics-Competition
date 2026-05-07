@@ -79,3 +79,12 @@ Get-PnpDevice -PresentOnly -Class Ports
 - Build log has a non-blocking `blk_mem_gen_0` locked-IP critical warning.
 - Timing is not final-clean: route log reports setup violations around `WNS=-3.330ns`, `TNS=-3948.764ns`; hold is clean.
 - Use this as a controlled bring-up artifact, then clean CDC/reset/debug timing before final competition measurements.
+
+## 2026-05-07 Board Check
+
+- Board was powered and JTAG was visible as `USB Serial Converter`, `VID_0403&PID_6014`, serial `210512180081`.
+- `top_awg_uart.bit` was programmed successfully.
+- Vivado reported `End of startup status: HIGH`.
+- Vivado detected 3 ILA cores and 1 VIO core; missing probe-file warnings only affect debug signal names.
+- No Windows `COM` port was present after programming. `Win32_SerialPort` and `[System.IO.Ports.SerialPort]::GetPortNames()` returned empty.
+- Next action is physical: connect or enable a USB-UART adapter to the K325T UART pins (`uart_rxd=T23`, `uart_txd=T22`). After that, run `status` and expect `ID=0x41574731`.
