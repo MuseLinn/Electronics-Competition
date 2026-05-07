@@ -1737,3 +1737,25 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - CSV contained 10 MHz, 50 MHz, and 100 MHz sine rows with matching readback phase increments.
   - The tool restores 50 MHz sine, amplitude `0x6000` by default after a live sweep.
   - Final status after sweep: `ID=0x41574731`, `CONTROL=0x00000003`, `PHASE_INC=0x0CCCCCCCCCCD`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`.
+
+## 23. No-Scope PC-Side Checks (2026-05-07)
+
+- Plan:
+  - `D:\FPGA\docs\superpowers\plans\2026-05-07-awg-gui-sweep-and-wave-quality.md`
+- GUI sweep update:
+  - `D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_panel.py`
+  - `Run Sweep` now calls the same implementation as `awg_uart_sweep.py`.
+  - Default GUI CSV target: `D:\FPGA\ad9144_bringup_k325t\measurements\uart_sweeps\gui_latest.csv`.
+  - The sweep still restores 50 MHz sine at amplitude `0x6000` by default.
+- Digital waveform self-check:
+  - Tool: `D:\FPGA\ad9144_bringup_k325t\tools\awg_wave_quality.py`
+  - Doc: `D:\FPGA\ad9144_bringup_k325t\docs\awg_wave_quality.md`
+  - Quick command:
+    `python D:\FPGA\ad9144_bringup_k325t\tools\awg_wave_quality.py --profile quick --out D:\FPGA\ad9144_bringup_k325t\reports\wave_quality\quick_latest.csv`
+  - It models `ad9144_awg_dds4.v`: 4 samples per beat, 48-bit phase, `ad9144_sine_4096.hex`, square/triangle/saw formulas, Q15 amplitude, offset, and signed saturation.
+  - It reports fundamental frequency, THD over harmonics 2-5, and largest non-harmonic spur.
+  - 2026-05-07 quick digital baseline at 1 GSa/s, 20,000 samples:
+    - 10 MHz sine: THD `-69.32 dBc`, largest non-harmonic spur `-77.89 dBc`.
+    - 50 MHz sine: THD `-68.70 dBc`, largest non-harmonic spur `-75.48 dBc`.
+    - 100 MHz sine: THD `-66.84 dBc`, largest non-harmonic spur `-325.22 dBc`.
+  - Treat it as a digital-code sanity check only; it does not include AD9144 analog effects, JESD latency, clock jitter, output network response, or oscilloscope loading.

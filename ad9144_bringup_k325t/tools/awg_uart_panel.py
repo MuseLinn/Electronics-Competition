@@ -8,9 +8,12 @@ import sys
 import threading
 import time
 import tkinter as tk
+from datetime import datetime
+from pathlib import Path
 from tkinter import messagebox, ttk
 from typing import Any, Callable
 
+from awg_uart_sweep import run_profile
 from awg_uart_control import (
     ADDR_AMPLITUDE,
     ADDR_APPLY,
@@ -36,6 +39,7 @@ from awg_uart_control import (
 DEFAULT_BAUD = 115200
 DEFAULT_TIMEOUT = 1.0
 DEFAULT_SAMPLE_RATE = 1_000_000_000.0
+DEFAULT_SWEEP_DIR = Path("D:/FPGA/ad9144_bringup_k325t/measurements/uart_sweeps")
 
 
 def list_ports() -> list[str]:
@@ -90,6 +94,8 @@ class AwgPanel(tk.Tk):
         self.offset_var = tk.StringVar(value="0")
         self.phase_var = tk.StringVar(value="0")
         self.wave_var = tk.StringVar(value="sine")
+        self.sweep_profile_var = tk.StringVar(value="quick")
+        self.sweep_out_var = tk.StringVar(value=str(DEFAULT_SWEEP_DIR / "gui_latest.csv"))
         self.state_var = tk.StringVar(value="Idle")
 
         self.status_vars: dict[str, tk.StringVar] = {
@@ -149,6 +155,20 @@ class AwgPanel(tk.Tk):
         apply_row.grid(row=6, column=0, columnspan=2, sticky=tk.EW, pady=(14, 0))
         ttk.Button(apply_row, text="Apply Preset", command=self.apply_preset_async).pack(side=tk.LEFT)
         ttk.Button(apply_row, text="Output Off", command=self.output_off_async).pack(side=tk.LEFT, padx=(8, 0))
+
+        ttk.Separator(controls).grid(row=7, column=0, columnspan=2, sticky=tk.EW, pady=(14, 8))
+        ttk.Label(controls, text="Sweep Profile").grid(row=8, column=0, sticky=tk.W, pady=6)
+        ttk.Combobox(
+            controls,
+            textvariable=self.sweep_profile_var,
+            values=["quick", "wave", "amplitude", "full"],
+            state="readonly",
+            width=18,
+        ).grid(row=8, column=1, sticky=tk.EW, pady=6)
+        self._add_entry(controls, 9, "Sweep CSV", self.sweep_out_var)
+        ttk.Button(controls, text="Run Sweep", command=self.run_sweep_async).grid(
+            row=10, column=0, columnspan=2, sticky=tk.W, pady=(8, 0)
+        )
 
         status = ttk.LabelFrame(main, text="Status", padding=10)
         main.add(status, weight=2)
@@ -240,8 +260,14 @@ class AwgPanel(tk.Tk):
                 label, result = payload
                 self.state_var.set("Idle")
                 self.log(f"{label} complete")
-                if isinstance(result, dict):
+                if isinstance(result, dict) and "__status__" in result:
+                    self.update_status(result["__status__"])
+                    if result.get("__message__"):
+                        self.log(str(result["__message__"]))
+                elif isinstance(result, dict):
                     self.update_status(result)
+                elif result is not None:
+                    self.log(str(result))
         self.after(100, self._drain_events)
 
     def update_status(self, data: dict[str, int]) -> None:
@@ -309,6 +335,38 @@ class AwgPanel(tk.Tk):
             return self._with_device(apply)
 
         self.run_async("Output off", task)
+
+    def _sweep_output_path(self) -> str:
+        path = self.sweep_out_var.get().strip()
+        if path:
+            return path
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        profile = self.sweep_profile_var.get()
+        return str(DEFAULT_SWEEP_DIR / f"gui_{profile}_{stamp}.csv")
+
+    def run_sweep_async(self) -> None:
+        def task() -> dict[str, Any]:
+            port, baud = self._connection_args()
+            profile = self.sweep_profile_var.get()
+            sample_rate = float(self.sample_rate_var.get())
+            out_path = run_profile(
+                profile=profile,
+                out=self._sweep_output_path(),
+                port=port,
+                baud=baud,
+                timeout=DEFAULT_TIMEOUT,
+                sample_rate=sample_rate,
+                settle=0.05,
+                dry_run=False,
+                restore=True,
+            )
+            status = self._with_device(read_status)
+            return {
+                "__status__": status,
+                "__message__": f"Sweep CSV: {out_path}",
+            }
+
+        self.run_async("Run sweep", task)
 
 
 def main() -> int:

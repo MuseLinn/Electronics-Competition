@@ -184,40 +184,65 @@ def write_csv(path: Path, rows: Iterable[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
-def run_sweep(args: argparse.Namespace) -> Path:
-    points = profile_points(args.profile)
+def run_profile(
+    *,
+    profile: str,
+    out: str | Path,
+    port: str | None = None,
+    baud: int = 115200,
+    timeout: float = 1.0,
+    sample_rate: float = DEFAULT_SAMPLE_RATE,
+    settle: float = 0.10,
+    dry_run: bool = False,
+    restore: bool = True,
+) -> Path:
+    points = profile_points(profile)
     rows: list[dict[str, str]] = []
-    if args.dry_run:
+    if dry_run:
         for point in points:
-            phase_inc = phase_inc_from_frequency(point.frequency_hz, args.sample_rate)
-            rows.append(row_for_point(point, phase_inc, args.sample_rate, args.port or "", True, None))
+            phase_inc = phase_inc_from_frequency(point.frequency_hz, sample_rate)
+            rows.append(row_for_point(point, phase_inc, sample_rate, port or "", True, None))
     else:
-        if not args.port:
+        if not port:
             raise ValueError("--port is required unless --dry-run is used")
-        dev = AwgUart(args.port, args.baud, args.timeout)
+        dev = AwgUart(port, baud, timeout)
         try:
             for point in points:
-                phase_inc = write_point(dev, point, args.sample_rate)
-                time.sleep(args.settle)
+                phase_inc = write_point(dev, point, sample_rate)
+                time.sleep(settle)
                 rows.append(
                     row_for_point(
                         point,
                         phase_inc,
-                        args.sample_rate,
-                        args.port,
+                        sample_rate,
+                        port,
                         False,
-                        readback(dev, args.sample_rate),
+                        readback(dev, sample_rate),
                     )
                 )
-            if args.restore:
+            if restore:
                 restore = SweepPoint("restore_50m_sine", RESTORE_FREQUENCY, RESTORE_AMPLITUDE, RESTORE_WAVE)
-                write_point(dev, restore, args.sample_rate)
+                write_point(dev, restore, sample_rate)
         finally:
             dev.close()
 
-    out = Path(args.out)
-    write_csv(out, rows)
-    return out
+    out_path = Path(out)
+    write_csv(out_path, rows)
+    return out_path
+
+
+def run_sweep(args: argparse.Namespace) -> Path:
+    return run_profile(
+        profile=args.profile,
+        out=args.out,
+        port=args.port,
+        baud=args.baud,
+        timeout=args.timeout,
+        sample_rate=args.sample_rate,
+        settle=args.settle,
+        dry_run=args.dry_run,
+        restore=args.restore,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
