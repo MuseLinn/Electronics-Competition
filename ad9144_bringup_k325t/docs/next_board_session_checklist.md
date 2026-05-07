@@ -62,13 +62,30 @@ Get-PnpDevice -PresentOnly -Class Ports
 Read the AWG ID:
 
 ```powershell
-python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM3 status
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM7 status
 ```
 
 Load a 50 MHz sine preset:
 
 ```powershell
-python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM3 preset --frequency 50000000 --amplitude 0x6000 --wave sine
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_control.py --port COM7 preset --frequency 50000000 --amplitude 0x6000 --wave sine
+```
+
+Or use the GUI:
+
+```powershell
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_uart_panel.py
+```
+
+GUI baseline fields:
+
+```text
+Frequency Hz: 50000000
+Sample Rate: 1000000000
+Amplitude: 0x6000
+Offset: 0
+Phase deg: 0
+Wave: sine
 ```
 
 Expected:
@@ -76,6 +93,8 @@ Expected:
 - The script reads `ID=0x41574731`.
 - OUT1 shows a waveform after register control is enabled.
 - `W 08 00000001` or the host `button` command returns control to physical buttons.
+
+The current laptop saw the CH340 as `COM7` on 2026-05-07. Always re-detect the port on another PC before copying the command.
 
 ## 5. Common Failures
 

@@ -31,6 +31,7 @@ build_*.log
 rebuild_*.log
 artifacts/
 measurements/
+reports/
 
 # Python cache
 __pycache__/

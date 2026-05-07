@@ -1781,3 +1781,25 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - The 400 MHz point appeared to have jumping frequency on the oscilloscope.
   - FPGA-side readback at 400 MHz stayed stable for repeated reads: `PHASE_INC=0x666666666666`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`, `CONTROL=0x00000003`.
   - Current classification: 400 MHz jump was oscilloscope counter/trigger/measurement behavior, not UART or FPGA register instability.
+
+## 25. Phase Handoff for External Continuation (2026-05-07)
+
+- Start here for the current AD9144 AWG phase:
+  - `D:\FPGA\ad9144_bringup_k325t\README.md`
+  - `D:\FPGA\ad9144_bringup_k325t\docs\phase_handoff_2026-05-07.md`
+- These two files are written for another engineer who has not read the chat history.
+- Current verified chain:
+  - `PC GUI/CLI -> CH340 UART -> K325T register bank -> DDS4 sample generator -> JESD204 TX -> AD9144 OUT1`.
+- Current known baseline:
+  - UART bit programmed.
+  - GUI/CLI status reads `ID=0x41574731`, `VERSION=0x20260507`.
+  - 50 MHz sine baseline: `PHASE_INC=0x0CCCCCCCCCCD`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`, `CONTROL=0x00000003`.
+- Handoff rule:
+  - Do not commit generated Vivado directories, bitstreams, logs, reports, or measurement CSVs.
+  - Rebuild generated artifacts from the checked-in scripts when needed.
+- Recommended next owner tasks:
+  - Make the UART-control build timing-clean or explicitly constrain/waive justified debug paths.
+  - Fill scope measurement templates with Vpp/frequency observations.
+  - Add spectrum-analyzer THD/spur measurements.
+  - Start amplitude calibration from measured Vpp versus `AMPLITUDE`.
+  - Decide when to merge the stable high-speed AD9144 path back into `D:\awg_fpga`.
