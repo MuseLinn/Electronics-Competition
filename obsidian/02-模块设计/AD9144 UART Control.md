@@ -219,3 +219,31 @@ Current quick digital baseline:
 50 MHz sine  -> THD -68.70 dBc, largest non-harmonic spur -75.48 dBc
 100 MHz sine -> THD -66.84 dBc, largest non-harmonic spur -325.22 dBc
 ```
+
+## Scope Measurement Workflow
+
+Tool:
+
+```text
+D:\FPGA\ad9144_bringup_k325t\tools\awg_scope_measurement.py
+```
+
+Doc:
+
+```text
+D:\FPGA\ad9144_bringup_k325t\docs\awg_scope_measurement.md
+```
+
+Use it to create fillable measurement sheets from UART sweep CSVs and turn filled sheets into Markdown reports:
+
+```powershell
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_scope_measurement.py template --from-sweep D:\FPGA\ad9144_bringup_k325t\measurements\uart_sweeps\scope_freq_response_rerun_20260507_1305.csv
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_scope_measurement.py report --input <filled_scope_csv> --out <scope_report_md>
+```
+
+2026-05-07 board note:
+
+- OUT1 responded to UART-controlled frequency, amplitude, and waveform changes.
+- Coarse sine sweep looked broadly normal through 300 MHz.
+- 400 MHz looked like frequency jumping on the oscilloscope, but FPGA readback stayed stable at `PHASE_INC=0x666666666666`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`, `CONTROL=0x00000003`.
+- Treat the 400 MHz jump as oscilloscope counter/trigger/measurement behavior unless future instrument evidence says otherwise.
