@@ -187,3 +187,35 @@ Verified live quick sweep rows:
 ```
 
 The tool restores 50 MHz sine amplitude `0x6000` after live sweeps by default.
+
+## GUI Sweep And Digital Wave Quality
+
+The UART panel now has a `Run Sweep` button. It uses the same sweep engine as `awg_uart_sweep.py`, writes a CSV, restores 50 MHz sine at amplitude `0x6000`, and refreshes the register status.
+
+Default GUI CSV:
+
+```text
+D:\FPGA\ad9144_bringup_k325t\measurements\uart_sweeps\gui_latest.csv
+```
+
+Digital self-check tool:
+
+```text
+D:\FPGA\ad9144_bringup_k325t\tools\awg_wave_quality.py
+```
+
+Quick run:
+
+```powershell
+python D:\FPGA\ad9144_bringup_k325t\tools\awg_wave_quality.py --profile quick --out D:\FPGA\ad9144_bringup_k325t\reports\wave_quality\quick_latest.csv
+```
+
+This models the RTL code path in `ad9144_awg_dds4.v`: 48-bit phase, four samples per beat, the 4096-point sine ROM, wave modes, Q15 amplitude, offset, and saturation. It is useful when no oscilloscope is nearby, but it is only a digital-code check and cannot prove AD9144 analog output quality.
+
+Current quick digital baseline:
+
+```text
+10 MHz sine  -> THD -69.32 dBc, largest non-harmonic spur -77.89 dBc
+50 MHz sine  -> THD -68.70 dBc, largest non-harmonic spur -75.48 dBc
+100 MHz sine -> THD -66.84 dBc, largest non-harmonic spur -325.22 dBc
+```
