@@ -57,6 +57,6 @@ Run dry-run/template/report commands to make sure the documented tool flow still
 
 Run `git diff --check` on the staged source/docs. Confirm generated files remain untracked/ignored.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 Commit the documentation wrap-up to `main`, then push. If Obsidian is a separate checkout state, commit/rebase/push it too.
