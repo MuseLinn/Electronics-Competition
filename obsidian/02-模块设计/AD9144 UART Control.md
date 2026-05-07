@@ -247,3 +247,27 @@ python D:\FPGA\ad9144_bringup_k325t\tools\awg_scope_measurement.py report --inpu
 - Coarse sine sweep looked broadly normal through 300 MHz.
 - 400 MHz looked like frequency jumping on the oscilloscope, but FPGA readback stayed stable at `PHASE_INC=0x666666666666`, `AMPLITUDE=0x6000`, `WAVE_MODE=0`, `CONTROL=0x00000003`.
 - Treat the 400 MHz jump as oscilloscope counter/trigger/measurement behavior unless future instrument evidence says otherwise.
+
+## Phase Handoff
+
+Current handoff entry points:
+
+```text
+D:\FPGA\ad9144_bringup_k325t\README.md
+D:\FPGA\ad9144_bringup_k325t\docs\phase_handoff_2026-05-07.md
+```
+
+These are the files to give another engineer first. They summarize the verified chain, build/program commands, GUI operation, measurement tools, generated-file policy, and recommended next tasks.
+
+Current baseline to reproduce:
+
+```text
+ID=0x41574731
+VERSION=0x20260507
+CONTROL=0x00000003
+PHASE_INC=0x0CCCCCCCCCCD
+AMPLITUDE=0x6000
+WAVE_MODE=0
+```
+
+Next work should focus on timing closure, proper measurement tables, THD/spur measurement, and amplitude calibration rather than re-proving basic UART/JESD/DAC connectivity.
