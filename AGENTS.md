@@ -14,6 +14,17 @@
 
 ---
 
+## AGENTS.md 层级索引
+
+```
+./AGENTS.md                          ← 你在这里（项目总览 + 完整知识库）
+├── rtl/AGENTS.md                    ← RTL 模块速查与编码约定
+├── ad9144_bringup_k325t/AGENTS.md   ← AD9144/JESD204 独立 bring-up 知识库
+└── ad9144_bringup_k325t/README.md   ← UART bring-up 快速开始指南
+```
+
+---
+
 ## AI Quick Start
 
 ### 项目概览
@@ -30,7 +41,7 @@
 
 ```
 Electronics-Competition/
-├── rtl/ + vivado/awg_k325t.xpr          # 基础 AWG 工程 (教学 DAC)
+├── rtl/ + vivado/awg_k325t.xpr          # 基础 AWG 工程 (基础演示 / LED)
 └── ad9144_bringup_k325t/                # AD9144 高速 DAC bring-up ➜ 见子目录 AGENTS.md
     └── AGENTS.md                        # 独立的 bring-up 知识库
 ```
@@ -51,7 +62,7 @@ Electronics-Competition/
 
 | 文件 | 用途 |
 |------|------|
-| `rtl/top/awg_dds_led_top.v` | 主顶层 (教学 DAC + 按键 UI) |
+| `rtl/top/awg_dds_led_top.v` | 基础演示顶层 (按键 UI + LED) |
 | `rtl/dsp/awg_core.v` | AWG 核心 (DDS + 波形选择 + 幅度/偏置) |
 | `rtl/top/awg_fmc_adda_top.v` | FMC ADDA 顶层 stub |
 | `ad9144_bringup_k325t/variants/awg_button/top.v` | **当前工作 AD9144 顶层** |
@@ -106,7 +117,7 @@ Electronics-Competition/
 
 **Phase 1 - 基础验证**:
 ```text
-License → LED → clk_reset → DDS → amp_offset_scale → teaching DAC → sweep_engine → BRAM waveform → demo
+License → LED → clk_reset → DDS → amp_offset_scale → sweep_engine → BRAM waveform → demo
 ```
 
 **Phase 2 - 完整系统**:
@@ -197,7 +208,6 @@ Vivado 对路径长度和非 ASCII 字符敏感。**优先使用短 ASCII 路径
 | PCIe | `01_FPGA\7_Series_product_guide\pcie_7x\v3_3\pg054-7series-pcie.pdf` |
 | DDR3 器件 | `03_DDR\NT5CC256M16ER.pdf` |
 | QSPI Flash | `04_Flash\N25Q128A.pdf` |
-| 教学 DAC | `06_ADDA芯片\3PD9708E.pdf` |
 
 ---
 
@@ -224,7 +234,6 @@ Phase 1: 基础验证
 │   ├── [✅] `tb_awg_core` 覆盖 BRAM 与 sweep 模式并通过
 │   └── [✅] `rebuild_awg_base.tcl` 可生成最新 `awg_dds_led_top.bit`
 ├── [✅] 幅度/偏置/缩放模块
-├── [✅] 教学 DAC 接口
 ├── [✅] 扫频引擎
 ├── [✅] BRAM 波形存储
 └── [🔄] Phase 1 Demo
@@ -273,9 +282,7 @@ D:\awg_fpga
 │   ├── dds/
 │   │   └── dds_compiler_wrapper.v      # DDS IP 封装（中文注释）
 │   ├── top/
-│   │   └── awg_dds_led_top.v           # 板级顶层（含 DAC 接口）
-│   └── dac/
-│       └── dac_edu_parallel_if.v       # 教学 DAC 接口
+│   │   └── awg_dds_led_top.v           # 板级顶层（LED 指示 + 按键 UI）
 ├── sim/
 │   └── tb/
 │       └── tb_dds_compiler.v           # 仿真测试平台（中文注释）
@@ -996,8 +1003,8 @@ close_project
 ### 10.2 已提交内容
 
 首次提交包含 38 个文件：
-- RTL 源码：`rtl/top/`、`rtl/dds/`、`rtl/dac/`、`rtl/dsp/`
-- 约束文件：`constraints/awg_dac_edu.xdc`、`constraints/awg_dds_led_top.xdc`
+- RTL 源码：`rtl/top/`、`rtl/dds/`、`rtl/dsp/`
+- 约束文件：`constraints/awg_dds_led_top.xdc`
 - 仿真平台：`sim/tb/`、`sim/work/`（脚本和 testbench）
 - Vivado 项目：`vivado/awg_k325t.xpr` + DDS IP 配置 `.xci`
 - 编译脚本：TCL / Python / PowerShell
@@ -1426,18 +1433,17 @@ If this is missing, the AD9144 path may link but output a flat waveform.
 ## 13. Current AWG status addendum (2026-05-06)
 
 - Active board demo chain:
-  `sys_clk_p/n -> IBUFDS/BUFG -> awg_key_ui_ctrl -> awg_core -> dac_edu_parallel_if -> da_clk/da_data[7:0]`
+  `sys_clk_p/n -> IBUFDS/BUFG -> awg_key_ui_ctrl -> awg_core -> led[1:0]`
 - Current validated files:
   - `D:\awg_fpga\rtl\control\awg_key_ui_ctrl.v`
   - `D:\awg_fpga\rtl\dsp\awg_core.v`
   - `D:\awg_fpga\rtl\top\awg_dds_led_top.v`
   - `D:\awg_fpga\constraints\awg_dds_led_top.xdc`
-- Teaching DAC pins were merged into the main top XDC, so `da_clk` and `da_data[7:0]` are no longer unconstrained.
 - Fresh verification:
   - `run_awg_key_ui_ctrl_sim.ps1` -> PASS
   - `run_awg_core_sim.ps1` -> PASS, covering sine/square/triangle/saw/amp/offset/saturation/BRAM/sweep
   - `rebuild_awg_base.tcl` -> PASS, bitstream generated at `D:\awg_fpga\vivado\awg_k325t.runs\impl_1\awg_dds_led_top.bit`
-- Next board step: reconnect the board, program the bitstream in Hardware Manager, and observe KEY0/KEY1 control plus DAC output.
+- Next board step: reconnect the board, program the bitstream in Hardware Manager, and observe KEY0/KEY1 control plus LED output.
 
 ## 14. AWG debug observability addendum (2026-05-06)
 
@@ -1463,8 +1469,7 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - probe8 `offset[15:0]`
   - probe9 `awg_sample[15:0]`
   - probe10 `sample_valid`
-  - probe11 `da_data[7:0]`
-  - probe12 `led[1:0]`
+    - probe12 `led[1:0]`
 - Build commands:
   - Normal bit: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_base.tcl`
   - Debug bit/ltx: `D:\vivado\Vivado\2024.1\bin\vivado.bat -mode batch -source D:\awg_fpga\scripts\rebuild_awg_debug.tcl`
@@ -1490,7 +1495,7 @@ If this is missing, the AD9144 path may link but output a flat waveform.
   - `program_and_capture_awg_debug.tcl` reprograms the FPGA before capture, so it resets the button/UI state to defaults. Do not use it to judge whether button presses were retained. Use `capture_awg_debug_no_program.tcl` after programming the debug bit once and after operating the buttons.
   - Successful ILA capture: `D:\awg_fpga\measurements\ila\capture_20260506_181837\hw_ila_1.csv`.
   - No-program capture on 2026-05-06 confirmed the current debug design was still loaded (`1 ILA core`) and captured the default state without reset: `ui_mode=0`, `wave_mode=0`, `phase_inc=0000002af31e`, `amplitude=4000`, `offset=0000`.
-  - Captured CSV includes `key0/key1/rst_n/ui_mode/wave_mode/freq_load/phase_inc/amplitude/offset/awg_sample/sample_valid/da_data/led`.
+  - Captured CSV includes `key0/key1/rst_n/ui_mode/wave_mode/freq_load/phase_inc/amplitude/offset/awg_sample/sample_valid/led`.
   - Default output is 1Hz, so a 2048-sample ILA window at 100MHz shows little visible waveform movement unless controls are changed or a faster debug frequency is used.
 
 ## 15. AD9144 AWG Button Variant Addendum (2026-05-06)

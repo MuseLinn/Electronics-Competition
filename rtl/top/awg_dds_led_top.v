@@ -15,7 +15,7 @@
 //     2 = 幅度档位
 //     3 = 直流偏置档位
 //
-//   正弦/方波/三角/锯齿/测试输出送到教学 DAC，同时用 LED 指示波形。
+//   正弦/方波/三角/锯齿/测试输出用 LED 指示波形状态。
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -26,9 +26,7 @@ module awg_dds_led_top (
     input  wire        sys_rst_n,
     input  wire        key0,
     input  wire        key1,
-    output wire [1:0]  led,
-    output wire        da_clk,
-    output wire [7:0]  da_data
+    output wire [1:0]  led
 );
 
     wire clk_ibuf;
@@ -101,13 +99,6 @@ module awg_dds_led_top (
         .sample_valid (sample_valid)
     );
 
-    dac_edu_parallel_if u_dac_if (
-        .clk      (clk),
-        .rst_n    (rst_n),
-        .sine_in  (awg_sample),
-        .da_clk   (da_clk),
-        .da_data  (da_data)
-    );
 
     assign wave_led[0] = awg_sample[15];
     assign wave_led[1] = awg_sample[14] ^ awg_sample[15];
@@ -140,7 +131,7 @@ module awg_dds_led_top (
         .probe8 (offset),
         .probe9 (awg_sample),
         .probe10(sample_valid),
-        .probe11(da_data),
+        .probe11(8'b0),
         .probe12(led)
     );
 `endif

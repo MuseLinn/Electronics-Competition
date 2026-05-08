@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "awg_analog_frontend")(type "KiCad")(uri "C:/Users/unive/Documents/GPR/Electronics-Competition/hardware/analog_frontend/awg_analog_frontend.kicad_sym")(options "")(descr ""))
+)

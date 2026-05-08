@@ -44,8 +44,7 @@ add_files -fileset sources_1 [list \
     [file join $repo_root "rtl" "dsp" "amp_offset_scale.v"] \
     [file join $repo_root "rtl" "dsp" "awg_core.v"] \
     [file join $repo_root "rtl" "control" "awg_key_ui_ctrl.v"] \
-    [file join $repo_root "rtl" "control" "awg_led_status.v"] \
-    [file join $repo_root "rtl" "dac" "dac_edu_parallel_if.v"] \
+    [file join $repo_root "rtl" "control" "awg_led_status.v"]
 ]
 puts "  RTL added"
 

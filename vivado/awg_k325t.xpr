@@ -125,13 +125,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl/dac/dac_edu_parallel_if.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
+      <!-- Removed: dac_edu_parallel_if.v (教学DAC已清理) -->
       <File Path="$PPRDIR/../rtl/dds/dds_nco.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>

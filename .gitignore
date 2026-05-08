@@ -61,3 +61,11 @@ vivado/**/ip/**/*_sim_netlist.v
 vivado/**/ip/**/*_sim_netlist.vhdl
 vivado/**/ip/**/*_stub.v
 vivado/**/ip/**/*_stub.vhdl
+
+# KiCad backup and generated files
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*-backups/
+*.kicad_prl
+fp-info-cache
+*.lck
