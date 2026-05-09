@@ -75,6 +75,10 @@ ad9144_bringup_k325t/vendor_src/**/__Previews/
 ad9144_bringup_k325t/vendor_src/**/*.rar
 ad9144_bringup_k325t/vendor_src/**/synth/
 ad9144_bringup_k325t/vendor_src/**/*.txt
+ad9144_bringup_k325t/vendor_src/**/example_design/
+
+# AI rollback artifacts
+.ai-slop-rollback.patch
 
 # KiCad backup and generated files
 *.kicad_sch-bak
