@@ -82,10 +82,10 @@ always @(posedge clk or negedge rst_n) begin
         output_en     <= 1'b1;
         cal_enable    <= 1'b0;
         cal_wr_en     <= 1'b0;
-        cal_rd_en     <= 1'b0;
+        // cal_rd_en is driven ONLY in the read-logic always block below
     end else begin
         cal_wr_en <= 1'b0;
-        cal_rd_en <= 1'b0;
+        // cal_rd_en is driven ONLY in the read-logic always block below
         if (cfg_wr_en) begin
             case (cfg_addr)
                 ADDR_CONTROL: begin

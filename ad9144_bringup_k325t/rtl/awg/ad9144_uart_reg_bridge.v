@@ -331,6 +331,10 @@ always @(posedge clk or negedge rst_n) begin
             end
 
             ST_RD_WAIT: begin
+                state <= ST_RD_WAIT2;
+            end
+
+            ST_RD_WAIT2: begin
                 state <= ST_RD_CAPTURE;
             end
 

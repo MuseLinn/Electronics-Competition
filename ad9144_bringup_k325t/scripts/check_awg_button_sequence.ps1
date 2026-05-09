@@ -1,8 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
-$topPath = 'D:\FPGA\ad9144_bringup_k325t\variants\awg_button\top.v'
-$ddsPath = 'D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_awg_dds4.v'
-$packerPath = 'D:\FPGA\ad9144_bringup_k325t\rtl\awg\ad9144_sample_packer.v'
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptDir
+$topPath = Join-Path $repoRoot 'variants\awg_button\top.v'
+$ddsPath = Join-Path $repoRoot 'rtl\awg\ad9144_awg_dds4.v'
+$packerPath = Join-Path $repoRoot 'rtl\awg\ad9144_sample_packer.v'
 $topText = Get-Content -LiteralPath $topPath -Raw
 $ddsText = Get-Content -LiteralPath $ddsPath -Raw
 $packerText = Get-Content -LiteralPath $packerPath -Raw

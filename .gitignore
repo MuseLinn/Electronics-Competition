@@ -62,6 +62,20 @@ vivado/**/ip/**/*_sim_netlist.vhdl
 vivado/**/ip/**/*_stub.v
 vivado/**/ip/**/*_stub.vhdl
 
+# Vendor generated files (keep .xci and .v RTL only)
+ad9144_bringup_k325t/vendor_src/**/*.veo
+ad9144_bringup_k325t/vendor_src/**/*.vho
+ad9144_bringup_k325t/vendor_src/**/*.xml
+ad9144_bringup_k325t/vendor_src/**/*.dcp
+ad9144_bringup_k325t/vendor_src/**/*_sim_netlist.v
+ad9144_bringup_k325t/vendor_src/**/*_sim_netlist.vhdl
+ad9144_bringup_k325t/vendor_src/**/*_stub.v
+ad9144_bringup_k325t/vendor_src/**/*_stub.vhdl
+ad9144_bringup_k325t/vendor_src/**/__Previews/
+ad9144_bringup_k325t/vendor_src/**/*.rar
+ad9144_bringup_k325t/vendor_src/**/synth/
+ad9144_bringup_k325t/vendor_src/**/*.txt
+
 # KiCad backup and generated files
 *.kicad_sch-bak
 *.kicad_pcb-bak
