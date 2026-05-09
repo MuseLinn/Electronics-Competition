@@ -127,316 +127,6 @@
       )
     )
   )
-  (symbol "PE4302"
-    (exclude_from_sim no)
-    (in_bom yes)
-    (on_board yes)
-    (property "Reference" "U"
-      (at 2.54 0 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "PE4302"
-      (at 0 -2.54 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" "Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.7x2.7mm"
-      (at 0 -5.08 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "Datasheet" "https://www.psemi.com/pdf/datasheets/pe4302ds.pdf"
-      (at 0 -7.62 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "Description" "Digital step attenuator, 0.5dB steps, 31.5dB range, 1MHz-4GHz"
-      (at 0 -10.16 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "ki_keywords" "attenuator digital RF"
-      (at 0 0 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (symbol "PE4302_0_1"
-      (rectangle
-        (start -5.08 2.54)
-        (end 5.08 -17.78)
-        (stroke (width 0.254) (type default))
-        (fill (type background))
-      )
-    )
-    (symbol "PE4302_1_1"
-      (pin passive line
-        (at -7.62 2.54 0)
-        (length 2.54)
-        (name "RF1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "1"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 2.54 180)
-        (length 2.54)
-        (name "RF2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "20"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 0 0)
-        (length 2.54)
-        (name "LE"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "2"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -2.54 0)
-        (length 2.54)
-        (name "CLK"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "3"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -5.08 0)
-        (length 2.54)
-        (name "D0"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "4"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -7.62 0)
-        (length 2.54)
-        (name "D1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "5"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -10.16 0)
-        (length 2.54)
-        (name "D2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "6"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -12.7 0)
-        (length 2.54)
-        (name "D3"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "7"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -15.24 0)
-        (length 2.54)
-        (name "D4"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "8"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin input line
-        (at -7.62 -17.78 0)
-        (length 2.54)
-        (name "D5"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "9"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin power_in line
-        (at 0 -20.32 90)
-        (length 2.54)
-        (name "GND"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "10"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin power_in line
-        (at 0 5.08 270)
-        (length 2.54)
-        (name "VCC"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "11"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-    )
-  )
-  (symbol "G6K-2F"
-    (exclude_from_sim no)
-    (in_bom yes)
-    (on_board yes)
-    (property "Reference" "K"
-      (at 2.54 0 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "G6K-2F"
-      (at 0 -2.54 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" ""
-      (at 0 -5.08 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "Datasheet" "https://omronfs.omron.com/en_US/ecb/products/pdf/en-g6k.pdf"
-      (at 0 -7.62 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "Description" "High-frequency signal relay, DPDT, 2GHz bandwidth, 5V coil"
-      (at 0 -10.16 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (property "ki_keywords" "relay RF DPDT high-frequency"
-      (at 0 0 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-      (hide yes)
-    )
-    (symbol "G6K-2F_0_1"
-      (rectangle
-        (start -5.08 3.81)
-        (end 5.08 -5.08)
-        (stroke (width 0.254) (type default))
-        (fill (type background))
-      )
-    )
-    (symbol "G6K-2F_1_1"
-      (pin passive line
-        (at -7.62 2.54 0)
-        (length 2.54)
-        (name "COIL1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "1"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at -7.62 0 0)
-        (length 2.54)
-        (name "COIL2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "2"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 2.54 180)
-        (length 2.54)
-        (name "NC1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "3"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 1.27 180)
-        (length 2.54)
-        (name "COM1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "4"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 0 180)
-        (length 2.54)
-        (name "NO1"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "5"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 -1.27 180)
-        (length 2.54)
-        (name "NC2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "6"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 -2.54 180)
-        (length 2.54)
-        (name "COM2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "7"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-      (pin passive line
-        (at 7.62 -3.81 180)
-        (length 2.54)
-        (name "NO2"
-          (effects (font (size 1.27 1.27)))
-        )
-        (number "8"
-          (effects (font (size 1.27 1.27)))
-        )
-      )
-    )
-  )
   (symbol "SMA_EDGE"
     (exclude_from_sim no)
     (in_bom yes)
@@ -957,6 +647,880 @@
           (effects (font (size 1.27 1.27)))
         )
         (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "TC1-1-13M+"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "T"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "TC1-1-13M+"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" "1:1 Balun, 4.5MHz-3GHz"
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "TC1-1-13M+_0_1"
+      (rectangle
+        (start -6.35 3.81)
+        (end 6.35 -3.81)
+        (stroke (width 0.254) (type default))
+        (fill (type background))
+      )
+    )
+    (symbol "TC1-1-13M+_1_1"
+      (pin passive line
+        (at -7.62 2.54 0)
+        (length 2.54)
+        (name "UNB"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at -7.62 0 0)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 2.54 180)
+        (length 2.54)
+        (name "DIFF+"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 -2.54 180)
+        (length 2.54)
+        (name "DIFF-"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "4"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "PE4302"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "U"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "PE4302"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" "Digital Step Attenuator, 0-31.5dB, 0.5dB step"
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "PE4302_0_1"
+      (rectangle
+        (start -6.35 6.35)
+        (end 6.35 -6.35)
+        (stroke (width 0.254) (type default))
+        (fill (type background))
+      )
+    )
+    (symbol "PE4302_1_1"
+      (pin passive line
+        (at -7.62 2.54 0)
+        (length 2.54)
+        (name "RF_IN"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at -7.62 0 0)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 2.54 180)
+        (length 2.54)
+        (name "RF_OUT"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at 7.62 0 180)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "4"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at -7.62 -2.54 0)
+        (length 2.54)
+        (name "D0"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "5"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at -7.62 -3.81 0)
+        (length 2.54)
+        (name "D1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "6"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at -7.62 -5.08 0)
+        (length 2.54)
+        (name "D2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "7"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at 7.62 -5.08 180)
+        (length 2.54)
+        (name "D3"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "8"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at 7.62 -3.81 180)
+        (length 2.54)
+        (name "D4"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "9"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at 7.62 -2.54 180)
+        (length 2.54)
+        (name "D5"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "10"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at 0 -7.62 90)
+        (length 2.54)
+        (name "LE"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "11"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at 2.54 -7.62 90)
+        (length 2.54)
+        (name "CLK"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "12"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at -2.54 7.62 270)
+        (length 2.54)
+        (name "VDD"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "13"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at 2.54 7.62 270)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "14"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "G6K-2F"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "K"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "G6K-2F"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" "DPDT Relay, 5V coil, 2GHz bandwidth"
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "G6K-2F_0_1"
+      (rectangle
+        (start -6.35 6.35)
+        (end 6.35 -6.35)
+        (stroke (width 0.254) (type default))
+        (fill (type background))
+      )
+    )
+    (symbol "G6K-2F_1_1"
+      (pin passive line
+        (at -7.62 5.08 0)
+        (length 2.54)
+        (name "A1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -7.62 2.54 0)
+        (length 2.54)
+        (name "A2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 5.08 180)
+        (length 2.54)
+        (name "B1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 2.54 180)
+        (length 2.54)
+        (name "B2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "4"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -7.62 0 0)
+        (length 2.54)
+        (name "C1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "5"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 0 180)
+        (length 2.54)
+        (name "C2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "6"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -7.62 -5.08 0)
+        (length 2.54)
+        (name "COIL+"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "7"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 7.62 -5.08 180)
+        (length 2.54)
+        (name "COIL-"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "8"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "Conn_01x03"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "J"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "Conn_01x03"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" ""
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "Conn_01x03_0_1"
+      (rectangle
+        (start -1.27 3.81)
+        (end 1.27 -3.81)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+    )
+    (symbol "Conn_01x03_1_1"
+      (pin passive line
+        (at 0 2.54 270)
+        (length 2.54)
+        (name "1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 0 0 270)
+        (length 2.54)
+        (name "2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 0 -2.54 270)
+        (length 2.54)
+        (name "3"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "Conn_02x05"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "J"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "Conn_02x05"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" ""
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "Conn_02x05_0_1"
+      (rectangle
+        (start -3.81 6.35)
+        (end 3.81 -6.35)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+    )
+    (symbol "Conn_02x05_1_1"
+      (pin passive line
+        (at -2.54 5.08 0)
+        (length 2.54)
+        (name "1"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 2.54 5.08 180)
+        (length 2.54)
+        (name "2"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -2.54 2.54 0)
+        (length 2.54)
+        (name "3"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 2.54 2.54 180)
+        (length 2.54)
+        (name "4"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "4"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -2.54 0 0)
+        (length 2.54)
+        (name "5"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "5"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 2.54 0 180)
+        (length 2.54)
+        (name "6"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "6"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -2.54 -2.54 0)
+        (length 2.54)
+        (name "7"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "7"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 2.54 -2.54 180)
+        (length 2.54)
+        (name "8"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "8"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at -2.54 -5.08 0)
+        (length 2.54)
+        (name "9"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "9"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 2.54 -5.08 180)
+        (length 2.54)
+        (name "10"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "10"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "SMA"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "J"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "SMA"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" ""
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "SMA_0_1"
+      (rectangle
+        (start -1.27 3.81)
+        (end 1.27 -3.81)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+    )
+    (symbol "SMA_1_1"
+      (pin passive line
+        (at 0 2.54 270)
+        (length 2.54)
+        (name "SIG"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin passive line
+        (at 0 -2.54 270)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "OpAmp_Single"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "U"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "OpAmp_Single"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" ""
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "OpAmp_Single_0_1"
+      (rectangle
+        (start -3.81 3.81)
+        (end 3.81 -3.81)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+    )
+    (symbol "OpAmp_Single_1_1"
+      (pin input line
+        (at -5.08 2.54 0)
+        (length 2.54)
+        (name "+"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin input line
+        (at -5.08 -2.54 0)
+        (length 2.54)
+        (name "-"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin output line
+        (at 5.08 0 180)
+        (length 2.54)
+        (name "OUT"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at 0 5.08 270)
+        (length 2.54)
+        (name "V+"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "4"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at 0 -5.08 90)
+        (length 2.54)
+        (name "V-"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "5"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+    )
+  )
+  (symbol "AMS1117-3.3"
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "U"
+      (at 2.54 0 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "AMS1117-3.3"
+      (at 0 -2.54 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 0 -5.08 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Datasheet" "~"
+      (at 0 -7.62 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (property "Description" ""
+      (at 0 -10.16 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+      (hide yes)
+    )
+    (symbol "AMS1117-3.3_0_1"
+      (rectangle
+        (start -3.81 3.81)
+        (end 3.81 -3.81)
+        (stroke (width 0.254) (type default))
+        (fill (type none))
+      )
+    )
+    (symbol "AMS1117-3.3_1_1"
+      (pin power_in line
+        (at 0 -5.08 90)
+        (length 2.54)
+        (name "GND"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "1"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_out line
+        (at 5.08 0 180)
+        (length 2.54)
+        (name "VOUT"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "2"
+          (effects (font (size 1.27 1.27)))
+        )
+      )
+      (pin power_in line
+        (at -5.08 0 0)
+        (length 2.54)
+        (name "VIN"
+          (effects (font (size 1.27 1.27)))
+        )
+        (number "3"
           (effects (font (size 1.27 1.27)))
         )
       )
