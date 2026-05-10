@@ -1,6 +1,8 @@
 //------------------------------------------------------------------------------
 // Digital Calibration Module for AD9144 AWG
 //------------------------------------------------------------------------------
+`timescale 1ns / 1ps
+
 // Function: Automatic amplitude compensation based on frequency, range, and
 //           calibration coefficient table stored in Block RAM.
 //
@@ -9,7 +11,8 @@
 //
 // Coefficient table: 16 frequency bins x 32-bit entry
 //   [31:16] = signed 16-bit offset
-//   [15:0]  = signed 16-bit gain coefficient (Q15 format, 0x7FFF ~ 1.0)
+//   [15:0]  = unsigned Q1.15 gain coefficient
+//             0x4000 = 0.5, 0x8000 = 1.0, 0xFFFF ~= 2.0
 //------------------------------------------------------------------------------
 
 module ad9144_awg_cal (
@@ -40,7 +43,7 @@ module ad9144_awg_cal (
 // Block RAM: Calibration Coefficient Table
 //------------------------------------------------------------------------------
 // 16 entries, each 32-bit: {offset[15:0], gain_coef[15:0]}
-// Default: unity gain (0x7FFF), zero offset (0x0000)
+// Default: unity gain (0x8000), zero offset (0x0000)
 //------------------------------------------------------------------------------
 
 (* ram_style = "block" *) reg [31:0] cal_table [0:15];
@@ -48,7 +51,7 @@ module ad9144_awg_cal (
 integer init_i;
 initial begin
     for (init_i = 0; init_i < 16; init_i = init_i + 1)
-        cal_table[init_i] = {16'sd0, 16'sh7FFF};
+        cal_table[init_i] = {16'sd0, 16'h8000};
 end
 
 //------------------------------------------------------------------------------
@@ -88,12 +91,12 @@ end
 //------------------------------------------------------------------------------
 // Amplitude Compensation (combinational, registered output)
 //------------------------------------------------------------------------------
-wire signed [15:0] gain_coef  = $signed(cal_entry[15:0]);
+wire        [15:0] gain_coef  = cal_entry[15:0];
 wire signed [15:0] offset_val = $signed(cal_entry[31:16]);
 
-wire signed [31:0] product = $signed({1'b0, amplitude_d}) * gain_coef;
-wire signed [31:0] shifted = product >>> 15;
-wire signed [31:0] summed  = shifted + offset_val;
+wire        [31:0] product = amplitude_d * gain_coef;
+wire        [17:0] shifted = product[31:15];
+wire signed [32:0] summed  = $signed({15'd0, shifted}) + {{17{offset_val[15]}}, offset_val};
 
 wire [15:0] compensated = (summed > 32767) ? 16'h7FFF :
                           (summed < 0)     ? 16'h0000 : summed[15:0];

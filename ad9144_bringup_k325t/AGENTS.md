@@ -79,6 +79,11 @@ ID=0x41574731  VERSION=0x20260507
 CONTROL=0x3   (output_enable=1, use_reg_control=1)
 ```
 
+`OUTPUT_EN` at `0x38` is a compatibility alias for `CONTROL[0]`; both read
+and write the same datapath gate that drives zero samples when disabled.
+Calibration table gain is unsigned Q1.15: `0x4000=0.5`, `0x8000=1.0`,
+`0xFFFF~=2.0`; the upper halfword remains a signed 16-bit offset.
+
 ## COMMANDS
 
 ```powershell
@@ -99,6 +104,9 @@ python tools/awg_uart_sweep.py --port COM7 --profile quick --settle 0.05
 
 # Digital quality check
 python tools/awg_wave_quality.py --profile quick
+
+# RTL calibration testbench
+& $env:VIVADO_PATH -mode batch -source scripts/run_tb_awg_cal.tcl
 ```
 
 ## NOTES

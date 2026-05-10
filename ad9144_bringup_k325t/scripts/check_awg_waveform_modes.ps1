@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$rootPath = 'D:\FPGA\ad9144_bringup_k325t'
+$rootPath = Split-Path -Parent $PSScriptRoot
 $topPath = Join-Path $rootPath 'variants\awg_button\top.v'
 $ddsPath = Join-Path $rootPath 'rtl\awg\ad9144_awg_dds4.v'
 $packerPath = Join-Path $rootPath 'rtl\awg\ad9144_sample_packer.v'

@@ -53,6 +53,9 @@ ERR
 | `0x28` | `WAVE_MODE` | R/W | `0=sine`, `1=square`, `2=triangle`, `3=saw` |
 | `0x2C` | `APPLY` | W | toggles update marker |
 | `0x30` | `BUTTON_STATE` | R | current button UI state |
+| `0x38` | `OUTPUT_EN` | R/W | compatibility alias of `CONTROL[0] output_enable` |
+| `0x3C` | `CAL_ENABLE` | R/W | bit0 enables digital calibration |
+| `0x40`-`0x7C` | `CAL_TABLE[0:15]` | R/W | `{signed offset[15:0], unsigned Q1.15 gain[15:0]}` |
 
 ## Frequency Formula
 

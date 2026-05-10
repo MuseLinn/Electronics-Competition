@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$root = "D:\FPGA\ad9144_bringup_k325t"
+$root = Split-Path -Parent $PSScriptRoot
 
 function Assert-FileContains {
     param(
@@ -46,6 +46,7 @@ Assert-FileContains $bridge 'cfg_wr_en\s*<=\s*1''b1' "UART bridge never emits cf
 Assert-FileContains $bridge 'cfg_rd_en\s*<=\s*1''b1' "UART bridge never emits cfg_rd_en."
 Assert-FileContains $bridge 'SEND_DATA' "UART bridge does not implement readback responses."
 Assert-FileContains $bridge 'ST_RD_CAPTURE' "UART bridge does not wait long enough before latching synchronous cfg_rdata."
+Assert-FileContains $bridge 'ST_RD_WAIT2\s+=\s+5''d13' "UART bridge uses ST_RD_WAIT2 without a declared state value."
 Assert-FileContains $bridge 'ST_SEND_BUSY' "UART bridge does not wait for uart_tx to accept each response byte."
 Assert-FileContains $bridge 'ST_SEND_IDLE' "UART bridge does not wait for uart_tx to finish each response byte."
 
