@@ -19,6 +19,7 @@ module tb_awg_cal;
     reg         cal_rd_en;
     reg  [3:0]  cal_rd_addr;
     wire [31:0] cal_rd_data;
+    integer     errors;
 
     ad9144_awg_cal uut (
         .clk               (clk),
@@ -77,6 +78,7 @@ module tb_awg_cal;
         $display("========================================");
 
         // Initialize
+        errors            = 0;
         rst_n            <= 1'b0;
         cal_enable       <= 1'b0;
         range_sel        <= 2'd0;
@@ -101,8 +103,10 @@ module tb_awg_cal;
         #1;
         if (amplitude_q15_out === 16'h6000)
             $display("  PASS: output = 0x%04X (expected 0x6000)", amplitude_q15_out);
-        else
+        else begin
             $display("  FAIL: output = 0x%04X (expected 0x6000)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Test 2: Write calibration coefficients
@@ -112,26 +116,30 @@ module tb_awg_cal;
         // Entry 0 (freq bin 0): gain = 0.5 (0x4000), offset = 100 (0x0064)
         write_cal_entry(4'd0, 16'h4000, 16'h0064);
 
-        // Entry 1 (freq bin 1): gain = 2.0 (0xFFFF), offset = -50 (0xFFCE)
+        // Entry 1 (freq bin 1): gain ~= 2.0 (unsigned Q1.15 0xFFFF), offset = -50 (0xFFCE)
         write_cal_entry(4'd1, 16'hFFFF, 16'hFFCE);
 
-        // Entry 2 (freq bin 2): gain = 1.0 (0x7FFF), offset = 0
-        write_cal_entry(4'd2, 16'h7FFF, 16'h0000);
+        // Entry 2 (freq bin 2): gain = 1.0 (unsigned Q1.15 0x8000), offset = 0
+        write_cal_entry(4'd2, 16'h8000, 16'h0000);
 
         // Verify write via readback
         read_cal_entry(4'd0);
         #1;
         if (cal_rd_data === {16'h0064, 16'h4000})
             $display("  PASS: cal_table[0] = 0x%08X", cal_rd_data);
-        else
+        else begin
             $display("  FAIL: cal_table[0] = 0x%08X", cal_rd_data);
+            errors = errors + 1;
+        end
 
         read_cal_entry(4'd1);
         #1;
         if (cal_rd_data === {16'hFFCE, 16'hFFFF})
             $display("  PASS: cal_table[1] = 0x%08X", cal_rd_data);
-        else
+        else begin
             $display("  FAIL: cal_table[1] = 0x%08X", cal_rd_data);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Test 3: Calibration enabled with unity gain
@@ -144,12 +152,13 @@ module tb_awg_cal;
         @(posedge clk);
         @(posedge clk);
         #1;
-        // With gain=0x7FFF (~1.0) and offset=0, output should be close to input
-        // 0x6000 * 0x7FFF >> 15 = 0x5FFF (or 0x6000 depending on rounding)
-        if (amplitude_q15_out >= 16'h5FFE && amplitude_q15_out <= 16'h6000)
-            $display("  PASS: output = 0x%04X (expected ~0x6000)", amplitude_q15_out);
-        else
-            $display("  FAIL: output = 0x%04X (expected ~0x6000)", amplitude_q15_out);
+        // 0x6000 * 0x8000 >> 15 = 0x6000
+        if (amplitude_q15_out === 16'h6000)
+            $display("  PASS: output = 0x%04X (expected 0x6000)", amplitude_q15_out);
+        else begin
+            $display("  FAIL: output = 0x%04X (expected 0x6000)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Test 4: Calibration with gain = 0.5 (bin 0)
@@ -164,30 +173,34 @@ module tb_awg_cal;
         // 0x6000 * 0x4000 >> 15 = 0x3000, + offset 0x64 = 0x3064
         if (amplitude_q15_out === 16'h3064)
             $display("  PASS: output = 0x%04X (expected 0x3064)", amplitude_q15_out);
-        else
+        else begin
             $display("  FAIL: output = 0x%04X (expected 0x3064)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
-        // Test 5: Calibration with gain = 2.0 (bin 1)
+        // Test 5: Calibration with gain ~= 2.0 (bin 1)
         //--------------------------------------------------
-        $display("[TEST 5] Cal enabled, gain=2.0 (bin 1)");
+        $display("[TEST 5] Cal enabled, gain~=2.0 (bin 1)");
         phase_inc        <= {4'd1, 44'd0}; // freq_idx = 1
         amplitude_q15_in <= 16'h2000;
         @(posedge clk);
         @(posedge clk);
         @(posedge clk);
         #1;
-        // 0x2000 * 0xFFFF >> 15 = 0x3FFF, + offset (-50) = 0x3FCE
-        if (amplitude_q15_out === 16'h3FCE)
-            $display("  PASS: output = 0x%04X (expected 0x3FCE)", amplitude_q15_out);
-        else
-            $display("  FAIL: output = 0x%04X (expected 0x3FCE)", amplitude_q15_out);
+        // 0x2000 * 0xFFFF >> 15 = 0x3FFF, + offset (-50) = 0x3FCD
+        if (amplitude_q15_out === 16'h3FCD)
+            $display("  PASS: output = 0x%04X (expected 0x3FCD)", amplitude_q15_out);
+        else begin
+            $display("  FAIL: output = 0x%04X (expected 0x3FCD)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Test 6: Saturation test (gain too high)
         //--------------------------------------------------
         $display("[TEST 6] Saturation test");
-        phase_inc        <= {4'd1, 44'd0}; // freq_idx = 1 (gain=2.0)
+        phase_inc        <= {4'd1, 44'd0}; // freq_idx = 1 (gain~=2.0)
         amplitude_q15_in <= 16'h7FFF;       // max input
         @(posedge clk);
         @(posedge clk);
@@ -196,8 +209,10 @@ module tb_awg_cal;
         // Should saturate to 0x7FFF
         if (amplitude_q15_out === 16'h7FFF)
             $display("  PASS: output = 0x%04X (saturated to max)", amplitude_q15_out);
-        else
+        else begin
             $display("  FAIL: output = 0x%04X (expected 0x7FFF)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Test 7: Disable calibration, verify passthrough resumes
@@ -211,14 +226,21 @@ module tb_awg_cal;
         #1;
         if (amplitude_q15_out === 16'h1234)
             $display("  PASS: output = 0x%04X (expected 0x1234)", amplitude_q15_out);
-        else
+        else begin
             $display("  FAIL: output = 0x%04X (expected 0x1234)", amplitude_q15_out);
+            errors = errors + 1;
+        end
 
         //--------------------------------------------------
         // Done
         //--------------------------------------------------
         $display("========================================");
-        $display("TB: ad9144_awg_cal completed");
+        if (errors == 0)
+            $display("TB: ad9144_awg_cal completed with 0 errors");
+        else begin
+            $display("TB: ad9144_awg_cal completed with %0d errors", errors);
+            $fatal(1);
+        end
         $display("========================================");
         #100;
         $finish;

@@ -28,7 +28,7 @@ This register bank controls the AWG datapath including DDS parameters, waveform 
 | `0x2C` | `APPLY` | WO | any write toggles `update_toggle` |
 | `0x30` | `BUTTON_STATE` | RO | packed button-demo mode selections |
 | `0x34` | `RANGE_SEL` | RW | analog frontend range: `0=high`, `1=low`, `2=ultra-low` |
-| `0x38` | `OUTPUT_EN` | RW | bit0: analog output enable (for relay/PE4302) |
+| `0x38` | `OUTPUT_EN` | RW | bit0: alias of `CONTROL[0] output_enable` |
 | `0x3C` | `CAL_ENABLE` | RW | bit0: enable digital calibration |
 | `0x40`–`0x7C` | `CAL_TABLE[0]`–`CAL_TABLE[15]` | RW | calibration coefficients (step 4) |
 
@@ -43,7 +43,7 @@ This register bank controls the AWG datapath including DDS parameters, waveform 
 | 4 | `sysref_seen` | SYSREF detected |
 | 5 | `sample_valid` | sample generator valid |
 | 6 | `update_toggle` | toggles on each APPLY write |
-| 7 | `output_en` | analog output enable state |
+| 7 | `output_en` | alias of bit0 `output_enable` |
 | 9:8 | `range_sel` | current range selection |
 | 10 | `cal_enable` | calibration enabled |
 
@@ -51,7 +51,7 @@ This register bank controls the AWG datapath including DDS parameters, waveform 
 
 Each calibration entry is 32-bit:
 - `[31:16]` = signed 16-bit offset
-- `[15:0]` = signed 16-bit gain coefficient (Q15, `0x7FFF` = 1.0)
+- `[15:0]` = unsigned Q1.15 gain coefficient (`0x4000` = 0.5, `0x8000` = 1.0, `0xFFFF` ~= 2.0)
 
 Frequency bins: `phase_inc[47:44]` selects 1 of 16 entries.
 
@@ -61,6 +61,9 @@ Frequency bins: `phase_inc[47:44]` selects 1 of 16 entries.
   - reset: `1`
   - `1`: pass samples to JESD TX
   - `0`: drive zero samples
+- `OUTPUT_EN[0]`
+  - compatibility alias for `CONTROL[0]`
+  - reads and writes the same output gate used by the datapath
 - `CONTROL[1] use_reg_control`
   - reset: `0`
   - `0`: use KEY0/KEY1 demo
@@ -81,9 +84,9 @@ Frequency bins: `phase_inc[47:44]` selects 1 of 16 entries.
 | `OFFSET` | `0x0000` | no offset |
 | `WAVE_MODE` | `0` | sine |
 | `RANGE_SEL` | `0` | high range |
-| `OUTPUT_EN` | `1` | analog output on |
+| `OUTPUT_EN` | `1` | same state as `CONTROL[0]` |
 | `CAL_ENABLE` | `0` | calibration off |
-| `CAL_TABLE[n]` | `{0x0000, 0x7FFF}` | zero offset, unity gain |
+| `CAL_TABLE[n]` | `{0x0000, 0x8000}` | zero offset, unity gain |
 
 ## Integration Notes
 

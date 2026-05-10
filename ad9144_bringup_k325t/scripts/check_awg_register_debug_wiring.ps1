@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$rootPath = 'D:\FPGA\ad9144_bringup_k325t'
+$rootPath = Split-Path -Parent $PSScriptRoot
 $topPath = Join-Path $rootPath 'variants\awg_button\top.v'
 $regPath = Join-Path $rootPath 'rtl\awg\ad9144_awg_reg_bank.v'
 $buildDebugPath = Join-Path $rootPath 'scripts\build_awg_button_debug.tcl'
@@ -50,7 +50,10 @@ foreach ($pattern in @(
     'assign\s+awg_cfg_wr_en\s+=\s+1''b0;',
     'assign\s+awg_cfg_rd_en\s+=\s+1''b0;',
     'wire\s+\[47:0\]\s+phase_inc\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_phase_inc\s+:\s+key_phase_inc;',
-    'wire\s+\[15:0\]\s+amp_q15\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_amplitude_q15\s+:\s+key_amp_q15;',
+    'ad9144_awg_cal\s+u_ad9144_awg_cal',
+    '\.amplitude_q15_in\s*\(\s*awg_reg_amplitude_q15\s*\)',
+    '\.amplitude_q15_out\s*\(\s*awg_cal_amplitude_q15\s*\)',
+    'wire\s+\[15:0\]\s+amp_q15\s+=\s+awg_reg_use_control\s+\?\s+awg_cal_amplitude_q15\s+:\s+key_amp_q15;',
     'wire\s+\[1:0\]\s+wave_mode\s+=\s+awg_reg_use_control\s+\?\s+awg_reg_wave_mode\s+:\s+key_wave_mode;',
     'assign\s+w_tx_tdata\s+=\s+awg_reg_output_enable\s+\?\s+awg_tx_tdata\s+:\s+128''d0;',
     'mark_debug\s*=\s*"true".*awg_debug_ctrl',
@@ -61,6 +64,15 @@ foreach ($pattern in @(
     'mark_debug\s*=\s*"true".*awg_debug_phase_offset'
 )) {
     Require-Match $topText $pattern "Missing top-level register/debug pattern: $pattern"
+}
+
+foreach ($pattern in @(
+    'output\s+wire\s+output_en',
+    'assign\s+output_en\s+=\s+output_enable;',
+    'ADDR_OUTPUT_EN:\s+begin\s+control_reg\[0\]\s+<=\s+cfg_wdata\[0\];\s+end',
+    'ADDR_OUTPUT_EN:\s+begin\s+cfg_rdata\s+<=\s+\{31''d0,\s+output_enable\};\s+end'
+)) {
+    Require-Match $regText $pattern "Missing register output-enable alias pattern: $pattern"
 }
 
 foreach ($pattern in @(

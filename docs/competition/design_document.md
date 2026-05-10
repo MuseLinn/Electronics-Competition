@@ -260,16 +260,20 @@ top.v
 | 0x00 | ID | RO | 0x41574731 | 标识寄存器("AWG1") |
 | 0x04 | VERSION | RO | 0x20260507 | 版本号 |
 | 0x08 | CONTROL | RW | 0x00000001 | 控制寄存器 |
-| 0x10 | PHASE_INC_H | RW | - | 频率控制字高32位 |
-| 0x14 | PHASE_INC_L | RW | - | 频率控制字低16位 |
-| 0x18 | PHASE_OFFSET_H | RW | - | 相位偏移高32位 |
-| 0x1C | PHASE_OFFSET_L | RW | - | 相位偏移低16位 |
+| 0x0C | STATUS | RO | - | 状态寄存器 |
+| 0x10 | PHASE_INC_LO | RW | - | 频率控制字低32位 |
+| 0x14 | PHASE_INC_HI | RW | - | 频率控制字高16位 |
+| 0x18 | PHASE_OFFSET_LO | RW | - | 相位偏移低32位 |
+| 0x1C | PHASE_OFFSET_HI | RW | - | 相位偏移高16位 |
 | 0x20 | AMPLITUDE | RW | 0x6000 | 幅度值(Q15格式) |
 | 0x24 | OFFSET | RW | 0x0000 | 偏置值 |
 | 0x28 | WAVE_MODE | RW | 0x0 | 波形模式 |
 | 0x2C | APPLY | WO | - | 应用配置 |
 | 0x30 | BUTTON_STATE | RO | - | 按键状态 |
-| 0x34 | STATUS | RO | - | 状态寄存器 |
+| 0x34 | RANGE_SEL | RW | 0x0 | 量程选择 |
+| 0x38 | OUTPUT_EN | RW | 0x1 | `CONTROL[0]`输出使能别名 |
+| 0x3C | CAL_ENABLE | RW | 0x0 | 数字校准使能 |
+| 0x40-0x7C | CAL_TABLE[0:15] | RW | {0x0000,0x8000} | 校准表：有符号偏置 + unsigned Q1.15增益 |
 
 **CONTROL寄存器位定义：**
 
@@ -277,8 +281,7 @@ top.v
 |----|------|------|
 | 0 | output_enable | 输出使能 |
 | 1 | use_reg_control | 使用寄存器控制(1)或按键控制(0) |
-| 2 | jesd_tx_enable | JESD TX使能 |
-| 3 | jesd_rx_enable | JESD RX使能 |
+| 31:2 | reserved | 保留 |
 
 **WAVE_MODE寄存器：**
 
@@ -332,28 +335,28 @@ top.v
 ```python
 class AWGController:
     """AWG设备控制器"""
-    
+
     def __init__(self, port: str, baudrate: int = 115200):
         self.serial = serial.Serial(port, baudrate, timeout=1)
-    
+
     def set_frequency(self, freq_hz: float):
         """设置输出频率"""
         phase_inc = int(freq_hz * (2**48) / 1e9)
         self.write_reg(0x10, phase_inc >> 16)
         self.write_reg(0x14, phase_inc & 0xFFFF)
         self.write_reg(0x2C, 1)  # APPLY
-    
+
     def set_amplitude(self, amplitude: float):
         """设置输出幅度 (0.0 ~ 1.0)"""
         amp_q15 = int(amplitude * 32767)
         self.write_reg(0x20, amp_q15)
         self.write_reg(0x2C, 1)  # APPLY
-    
+
     def set_waveform(self, mode: int):
         """设置波形模式"""
         self.write_reg(0x28, mode)
         self.write_reg(0x2C, 1)  # APPLY
-    
+
     def read_status(self) -> dict:
         """读取设备状态"""
         return {
@@ -369,13 +372,13 @@ class AWGController:
 ```python
 class AWGSweep:
     """AWG扫描测试"""
-    
-    def frequency_sweep(self, start_freq: float, end_freq: float, 
+
+    def frequency_sweep(self, start_freq: float, end_freq: float,
                        points: int, duration: float):
         """频率扫描"""
         freqs = np.linspace(start_freq, end_freq, points)
         results = []
-        
+
         for freq in freqs:
             self.controller.set_frequency(freq)
             time.sleep(duration)
@@ -384,15 +387,15 @@ class AWGSweep:
                 'frequency': freq,
                 'status': status
             })
-        
+
         return results
-    
+
     def amplitude_sweep(self, start_amp: float, end_amp: float,
                        points: int, duration: float):
         """幅度扫描"""
         amps = np.linspace(start_amp, end_amp, points)
         results = []
-        
+
         for amp in amps:
             self.controller.set_amplitude(amp)
             time.sleep(duration)
@@ -400,7 +403,7 @@ class AWGSweep:
                 'amplitude': amp,
                 'status': self.controller.read_status()
             })
-        
+
         return results
 ```
 
@@ -506,25 +509,25 @@ class AWGAutoTest:
     def run_full_test(self):
         """执行完整测试流程"""
         results = {}
-        
+
         # 1. 设备初始化检查
         results['init'] = self.test_initialization()
-        
+
         # 2. 波形输出测试
         results['waveform'] = self.test_waveforms()
-        
+
         # 3. 频率扫描测试
         results['freq_sweep'] = self.test_frequency_sweep()
-        
+
         # 4. 幅度扫描测试
         results['amp_sweep'] = self.test_amplitude_sweep()
-        
+
         # 5. 性能指标测试
         results['performance'] = self.test_performance()
-        
+
         # 6. 生成测试报告
         self.generate_report(results)
-        
+
         return results
 ```
 
@@ -606,22 +609,23 @@ class AWGAutoTest:
 |----|------|------|--------|------|
 | 0 | output_enable | RW | 1 | DAC输出使能 |
 | 1 | use_reg_control | RW | 0 | 控制源选择 |
-| 2 | jesd_tx_enable | RW | 1 | JESD TX使能 |
-| 3 | jesd_rx_enable | RW | 0 | JESD RX使能 |
-| 4 | sweep_enable | RW | 0 | 扫描使能 |
-| 31:5 | reserved | RO | 0 | 保留 |
+| 31:2 | reserved | RO | 0 | 保留 |
 
-#### A.2 STATUS寄存器 (0x34)
+#### A.2 STATUS寄存器 (0x0C)
 
 | 位 | 名称 | 类型 | 说明 |
 |----|------|------|------|
-| 0 | jesd_tx_ready | RO | JESD TX就绪 |
-| 1 | jesd_rx_ready | RO | JESD RX就绪 |
-| 2 | dac_locked | RO | DAC锁定 |
-| 3 | pll_locked | RO | PLL锁定 |
-| 4 | qpll_locked | RO | QPLL锁定 |
-| 5 | sync_detected | RO | SYNC检测 |
-| 31:6 | reserved | RO | 保留 |
+| 0 | output_enable | RO | 当前输出使能状态 |
+| 1 | use_reg_control | RO | 当前控制源，1为寄存器控制 |
+| 2 | tx_ready | RO | JESD TX `tready` |
+| 3 | tx_sync | RO | JESD TX sync状态 |
+| 4 | sysref_seen | RO | SYSREF已检测 |
+| 5 | sample_valid | RO | AWG采样有效 |
+| 6 | update_toggle | RO | APPLY写入翻转标志 |
+| 7 | output_en | RO | `output_enable`别名 |
+| 9:8 | range_sel | RO | 当前量程选择 |
+| 10 | cal_enable | RO | 数字校准使能 |
+| 31:11 | reserved | RO | 保留 |
 
 ### B. 参考资料
 

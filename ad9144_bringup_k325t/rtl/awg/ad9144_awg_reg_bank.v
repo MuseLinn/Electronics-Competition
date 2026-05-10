@@ -23,7 +23,7 @@ module ad9144_awg_reg_bank (
 
     // New calibration / range control outputs
     output reg          [1:0] range_sel,
-    output reg                output_en,
+    output wire               output_en,
     output reg                cal_enable,
     output reg                cal_wr_en,
     output reg          [3:0] cal_wr_addr,
@@ -68,6 +68,7 @@ reg [31:0] control_reg;
 
 assign output_enable = control_reg[0];
 assign use_reg_control = control_reg[1];
+assign output_en = output_enable;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -79,7 +80,6 @@ always @(posedge clk or negedge rst_n) begin
         wave_mode     <= 2'd0;
         update_toggle <= 1'b0;
         range_sel     <= 2'd0;
-        output_en     <= 1'b1;
         cal_enable    <= 1'b0;
         cal_wr_en     <= 1'b0;
         // cal_rd_en is driven ONLY in the read-logic always block below
@@ -119,7 +119,7 @@ always @(posedge clk or negedge rst_n) begin
                     range_sel <= cfg_wdata[1:0];
                 end
                 ADDR_OUTPUT_EN: begin
-                    output_en <= cfg_wdata[0];
+                    control_reg[0] <= cfg_wdata[0];
                 end
                 ADDR_CAL_ENABLE: begin
                     cal_enable <= cfg_wdata[0];
@@ -186,7 +186,7 @@ always @(posedge clk or negedge rst_n) begin
                     21'd0,
                     cal_enable,
                     range_sel,
-                    output_en,
+                    output_enable,
                     update_toggle,
                     sample_valid,
                     sysref_seen,
@@ -221,7 +221,7 @@ always @(posedge clk or negedge rst_n) begin
                 cfg_rdata <= {30'd0, range_sel};
             end
             ADDR_OUTPUT_EN: begin
-                cfg_rdata <= {31'd0, output_en};
+                cfg_rdata <= {31'd0, output_enable};
             end
             ADDR_CAL_ENABLE: begin
                 cfg_rdata <= {31'd0, cal_enable};

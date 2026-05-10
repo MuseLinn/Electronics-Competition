@@ -39,6 +39,7 @@ localparam [4:0] ST_SEND         = 5'd9;
 localparam [4:0] ST_SEND_BUSY    = 5'd10;
 localparam [4:0] ST_SEND_IDLE    = 5'd11;
 localparam [4:0] ST_RD_CAPTURE   = 5'd12;
+localparam [4:0] ST_RD_WAIT2     = 5'd13;
 
 localparam [1:0] SEND_OK   = 2'd0;
 localparam [1:0] SEND_ERR  = 2'd1;
